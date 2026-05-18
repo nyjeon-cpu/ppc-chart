@@ -97,6 +97,15 @@
   .ppc-card-stats .avg { font-weight:700; font-size:13px; color:var(--navy); }
   .ppc-card-stats .avg.bad { color:var(--bad); } .ppc-card-stats .avg.good { color:var(--good); }
   .ppc-card-chart { position:relative; height:140px; margin-top:6px; }
+  .team-filter { display:flex; gap:6px; align-items:center; margin:8px 0 14px; flex-wrap:wrap; }
+  .team-filter .lbl { font-size:12px; color:var(--muted); margin-right:4px; font-weight:600; }
+  .team-filter button { font-family:inherit; font-size:12px; padding:5px 14px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--muted); cursor:pointer; transition:0.12s; font-weight:600; }
+  .team-filter button:hover { border-color:var(--navy); color:var(--navy); }
+  .team-filter button.active { background:var(--navy); border-color:var(--navy); color:white; }
+  .team-filter button.t1팀.active { background:var(--t1); border-color:var(--t1); }
+  .team-filter button.t2팀.active { background:var(--t2); border-color:var(--t2); }
+  .team-filter button.t3팀.active { background:var(--t3); border-color:var(--t3); }
+  .team-filter button.t4팀.active { background:var(--t4); border-color:var(--t4); }
   footer { text-align:center; font-size:11px; color:var(--muted); padding:20px; }
   @media (max-width:1200px) { .ppc-cards { grid-template-columns:repeat(3, 1fr); } .chart-grid.cols-5 { grid-template-columns:repeat(2, 1fr); } }
   @media (max-width:800px) { .kpi-grid { grid-template-columns:repeat(2, 1fr); } .ppc-cards { grid-template-columns:repeat(2, 1fr); } }
@@ -140,6 +149,15 @@
       <span><span class="dash"></span>🎯 목표선</span>
     </div>
 
+    <div class="team-filter" data-metric="piph">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 16개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
     <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
     <div class="chart-box">
       <div class="ttl-sub">PPC 16개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
@@ -156,6 +174,15 @@
       <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
       <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
       <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="wait">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 16개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
     </div>
 
     <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
@@ -176,6 +203,15 @@
       <span><span class="dash"></span>🎯 목표선</span>
     </div>
 
+    <div class="team-filter" data-metric="pick">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 16개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
     <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
     <div class="chart-box">
       <div class="ttl-sub">PPC 16개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
@@ -194,6 +230,15 @@
       <span><span class="dash"></span>🎯 목표선</span>
     </div>
 
+    <div class="team-filter" data-metric="pack">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 16개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
     <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
     <div class="chart-box">
       <div class="ttl-sub">PPC 16개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
@@ -210,6 +255,15 @@
       <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
       <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
       <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="bo">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 16개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
     </div>
 
     <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
@@ -405,7 +459,11 @@ DATA.metrics.forEach(function(m) {
 
 // ===== W-0 PPC 가로막대 =====
 function buildW0Rank(canvas, metric) {
-  let arr = DATA.ppcs.map(function(p) { return { name: p.name, team: p.team, group: p.group, val: DATA.ppcW0[metric.key][p.name] }; });
+  const _old = Chart.getChart(canvas);
+  if (_old) _old.destroy();
+  const _filter = (window.teamFilter && window.teamFilter[metric.key]) || 'all';
+  const _ppcs = _filter === 'all' ? DATA.ppcs : DATA.ppcs.filter(function(p) { return p.team === _filter; });
+  let arr = _ppcs.map(function(p) { return { name: p.name, team: p.team, group: p.group, val: DATA.ppcW0[metric.key][p.name] }; });
   arr.sort(function(a,b) {
     if (a.val == null) return 1;
     if (b.val == null) return -1;
@@ -545,6 +603,20 @@ function buildPPCCard(metric, ppc, yMin, yMax) {
 }
 
 const rendered = { summary: true };
+window.teamFilter = {};
+DATA.metrics.forEach(function(m) { window.teamFilter[m.key] = 'all'; });
+document.querySelectorAll('.team-filter').forEach(function(filterEl) {
+  const metricKey = filterEl.dataset.metric;
+  filterEl.querySelectorAll('button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filterEl.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      window.teamFilter[metricKey] = btn.dataset.team;
+      const m = DATA.metrics.find(function(x) { return x.key === metricKey; });
+      if (m && rendered[metricKey]) renderDetail(m);
+    });
+  });
+});
 DATA.metrics.forEach(function(m) { rendered[m.key] = false; });
 
 function renderDetail(metric) {
@@ -567,7 +639,11 @@ function renderDetail(metric) {
   const yMin = Math.max(0, dMin - Math.max(span * 0.05, dMin * 0.05));
 
   const grid = document.getElementById('cards-'+metric.key);
-  DATA.ppcs.forEach(function(p) { grid.appendChild(buildPPCCard(metric, p, yMin, yMax)); });
+  grid.querySelectorAll('canvas').forEach(function(c) { const ch = Chart.getChart(c); if (ch) ch.destroy(); });
+  grid.innerHTML = '';
+  const _filter = (window.teamFilter && window.teamFilter[metric.key]) || 'all';
+  const _ppcs = _filter === 'all' ? DATA.ppcs : DATA.ppcs.filter(function(p) { return p.team === _filter; });
+  _ppcs.forEach(function(p) { grid.appendChild(buildPPCCard(metric, p, yMin, yMax)); });
 }
 
 const tabs = document.querySelectorAll('#tabBar button');
