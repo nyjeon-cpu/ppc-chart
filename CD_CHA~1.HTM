@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>크로스도킹 전환 전/후 분석</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #f0f2f5; color: #1a1a2e; }
+
+/* ── 헤더 ── */
+.header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 24px 36px 20px; }
+.header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.header p  { font-size: 12px; color: #94a3b8; }
+
+/* ── 핵심 요약 ── */
+.kpi-bar { display: flex; gap: 16px; padding: 20px 36px; background: #0f172a; border-bottom: 1px solid #1e293b; flex-wrap: wrap; }
+.kpi-card { flex: 1; min-width: 260px; background: #1e293b; border-radius: 14px; padding: 18px 22px; display: flex; align-items: center; gap: 18px; }
+.kpi-icon { font-size: 28px; }
+.kpi-body { flex: 1; }
+.kpi-label { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 6px; }
+.kpi-nums { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kpi-before { font-size: 22px; font-weight: 800; color: #94a3b8; }
+.kpi-arrow  { font-size: 18px; color: #475569; }
+.kpi-after  { font-size: 22px; font-weight: 800; color: #f8fafc; }
+.kpi-delta  { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.kpi-delta.pos { background: #dc2626; color: #fef2f2; }
+.kpi-delta.amber { background: #d97706; color: #fffbeb; }
+.kpi-sub { font-size: 11px; color: #475569; margin-top: 4px; }
+
+/* ── 필터 영역 ── */
+.filter-wrap { background: white; padding: 14px 36px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter-label { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; }
+.filter-divider { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; border: 1.5px solid #e2e8f0; background: white; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; color: #475569; white-space: nowrap; }
+.pill:hover { border-color: #0f3460; color: #0f3460; }
+.pill.active { background: #0f3460; color: white; border-color: #0f3460; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot-apr05 { background: #ef4444; }
+.dot-apr12 { background: #f59e0b; }
+.dot-apr19 { background: #10b981; }
+.dot-apr26 { background: #8b5cf6; }
+
+/* ── 탭 ── */
+.tabs { display: flex; gap: 0; padding: 0 36px; background: white; border-bottom: 2px solid #e2e8f0; overflow-x: auto; }
+.tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: all .15s; }
+.tab.active { color: #0f3460; border-bottom-color: #0f3460; }
+.tab:hover  { color: #0f3460; }
+
+/* ── 콘텐츠 ── */
+.content { padding: 24px 36px; }
+.section { display: none; }
+.section.active { display: block; }
+
+.overview-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-wrap { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border: 1px solid #e2e8f0; }
+.chart-wrap h3 { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 14px; }
+.chart-wrap canvas { height: 480px !important; }
+.chart-full { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border: 1px solid #e2e8f0; margin-bottom: 16px; }
+.chart-full h3 { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 14px; }
+.chart-full canvas { height: 480px !important; }
+canvas { max-height: 520px; }
+
+/* ── SKU 카드 ── */
+.section-hdr { font-size: 14px; font-weight: 700; color: #0f3460; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.date-chip { font-size: 11px; padding: 3px 12px; border-radius: 20px; color: white; font-weight: 700; }
+.chip-apr05 { background: #ef4444; }
+.chip-apr12 { background: #f59e0b; }
+.chip-apr19 { background: #10b981; }
+.chip-apr26 { background: #8b5cf6; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.sku-card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border: 1px solid #e2e8f0; transition: box-shadow .15s; }
+.sku-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.sku-card.hidden { display: none; }
+
+.sku-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.sku-code-badge { font-size: 10px; font-weight: 700; color: #0f3460; background: #eff6ff; padding: 3px 8px; border-radius: 6px; }
+.sku-name { font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 5px; line-height: 1.4; }
+
+.metric-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.metric { background: #f8fafc; border-radius: 8px; padding: 10px 8px; text-align: center; }
+.m-label  { font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: .4px; margin-bottom: 6px; }
+.m-before { font-size: 15px; font-weight: 700; color: #64748b; }
+.m-arrow  { font-size: 14px; margin: 1px 0; }
+.m-after  { font-size: 15px; font-weight: 800; }
+.m-badge  { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-top: 3px; display: inline-block; }
+
+.up   { color: #ef4444; } .down { color: #10b981; }
+.up-bg   { background: #fef2f2; color: #ef4444; }
+.down-bg { background: #f0fdf4; color: #10b981; }
+.neu-bg  { background: #f1f5f9; color: #64748b; }
+.amber   { color: #d97706; }
+.amber-bg{ background: #fffbeb; color: #d97706; }
+.blue    { color: #3b82f6; }
+.blue-bg { background: #eff6ff; color: #3b82f6; }
+
+.no-result { text-align: center; padding: 48px; color: #94a3b8; font-size: 14px; display: none; }
+
+@media (max-width: 700px) {
+  .kpi-bar,.content,.filter-wrap,.tabs { padding-left: 16px; padding-right: 16px; }
+  .overview-charts { grid-template-columns: 1fr; }
+  .kpi-before,.kpi-after { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>크로스도킹 전환 전/후 재고·SHD 분석</h1>
+  <p>비축 → 크로스도킹 운영타입 변경 · 기간 일평균 기준 · 데이터: 2026-01-01 ~ 2026-06-08</p>
+</div>
+
+<div class="kpi-bar" id="kpiBar"></div>
+
+<div class="filter-wrap">
+  <span class="filter-label">SKU 필터</span>
+  <div class="filter-divider"></div>
+  <div id="pillContainer"></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('all')">전체 개요</div>
+  <div class="tab" onclick="switchTab('bydate')">변경일별</div>
+</div>
+
+<div class="content">
+  <!-- 전체 개요 탭 -->
+  <div class="section active" id="all">
+    <div class="overview-charts">
+      <div class="chart-wrap"><h3>PPC 일평균 재고 변화</h3><canvas id="cPPC"></canvas></div>
+      <div class="chart-wrap"><h3>DC 일평균 재고 변화</h3><canvas id="cDC"></canvas></div>
+    </div>
+    <div class="chart-full"><h3>PPC 평균 SHD 변화</h3><canvas id="cSHD"></canvas></div>
+  </div>
+
+  <!-- 변경일별 탭 -->
+  <div class="section" id="bydate">
+    <div id="group_apr05">
+      <div class="section-hdr"><span class="date-chip chip-apr05">4월 5일</span> 변경 SKU</div>
+      <div class="cards-grid" id="cards_apr05"></div>
+    </div>
+    <div id="group_apr12">
+      <div class="section-hdr"><span class="date-chip chip-apr12">4월 12일</span> 변경 SKU</div>
+      <div class="cards-grid" id="cards_apr12"></div>
+    </div>
+    <div id="group_apr19">
+      <div class="section-hdr"><span class="date-chip chip-apr19">4월 19일</span> 변경 SKU</div>
+      <div class="cards-grid" id="cards_apr19"></div>
+    </div>
+    <div id="group_apr26">
+      <div class="section-hdr"><span class="date-chip chip-apr26">4월 26일</span> 변경 SKU</div>
+      <div class="cards-grid" id="cards_apr26"></div>
+    </div>
+    <div class="no-result" id="noResult">선택된 SKU에 해당하는 데이터가 없습니다.</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {sku:"A38002882",name:"테크 베이킹소다+구연산 세탁세제",date:"2026-04-05",group:"apr05",ppc_b:1055.1,ppc_a:988.3,dc_b:85.4,dc_a:6.0,shd_b:54.79,shd_a:59.48},
+  {sku:"A21001863",name:"농심 신라면 건면 97g 5입",date:"2026-04-05",group:"apr05",ppc_b:588.4,ppc_a:1673.1,dc_b:587.9,dc_a:0.6,shd_b:6.35,shd_a:18.20},
+  {sku:"A21005744",name:"농심 사리곰탕면 110g 5입",date:"2026-04-05",group:"apr05",ppc_b:479.2,ppc_a:1009.0,dc_b:568.9,dc_a:0.0,shd_b:8.33,shd_a:20.73},
+  {sku:"A21020668",name:"아이시스 8.0 1L 6입",date:"2026-04-12",group:"apr12",ppc_b:1897.9,ppc_a:5852.7,dc_b:5227.9,dc_a:0.0,shd_b:5.22,shd_a:17.81},
+  {sku:"A21008868",name:"농심 새우깡 미니팩 30g×4입",date:"2026-04-12",group:"apr12",ppc_b:1346.8,ppc_a:4072.0,dc_b:2339.9,dc_a:0.0,shd_b:5.48,shd_a:13.60},
+  {sku:"A38004027",name:"FRANCO 뚫어뻥",date:"2026-04-12",group:"apr12",ppc_b:770.4,ppc_a:1388.5,dc_b:827.8,dc_a:168.5,shd_b:10.60,shd_a:28.76},
+  {sku:"A21011740",name:"해태 오사쯔 100g",date:"2026-04-12",group:"apr12",ppc_b:797.0,ppc_a:1710.7,dc_b:1296.0,dc_a:0.0,shd_b:6.72,shd_a:14.91},
+  {sku:"A21016768",name:"해태 에이스 364g",date:"2026-04-12",group:"apr12",ppc_b:828.4,ppc_a:1845.5,dc_b:1520.8,dc_a:0.0,shd_b:6.24,shd_a:15.48},
+  {sku:"A21001599",name:"롯데 명가 찰떡파이 350g",date:"2026-04-12",group:"apr12",ppc_b:768.5,ppc_a:949.1,dc_b:1589.2,dc_a:0.0,shd_b:5.80,shd_a:14.84},
+  {sku:"A21007775",name:"오뚜기 라면사리 일반면 110g 5입",date:"2026-04-12",group:"apr12",ppc_b:683.9,ppc_a:1586.4,dc_b:1034.1,dc_a:0.0,shd_b:6.87,shd_a:14.82},
+  {sku:"A21002039",name:"해태 오예스 오리지널 360g",date:"2026-04-19",group:"apr19",ppc_b:1005.0,ppc_a:3166.6,dc_b:2526.1,dc_a:0.0,shd_b:5.43,shd_a:17.72},
+  {sku:"A21007830",name:"뻥이요 120g",date:"2026-04-19",group:"apr19",ppc_b:2070.5,ppc_a:5660.1,dc_b:3287.8,dc_a:16.4,shd_b:6.83,shd_a:14.51},
+  {sku:"A21016769",name:"해태 오예스미니 192g",date:"2026-04-19",group:"apr19",ppc_b:1377.9,ppc_a:4158.3,dc_b:2815.8,dc_a:7.0,shd_b:6.36,shd_a:18.90},
+  {sku:"A21007934",name:"농심 멸치칼국수 98g 5입",date:"2026-04-19",group:"apr19",ppc_b:746.0,ppc_a:1820.6,dc_b:1387.5,dc_a:3.8,shd_b:6.75,shd_a:12.17},
+  {sku:"A21016771",name:"해태 맛동산 341g",date:"2026-04-19",group:"apr19",ppc_b:869.0,ppc_a:2279.3,dc_b:1658.9,dc_a:0.0,shd_b:5.98,shd_a:17.98},
+  {sku:"A38004102",name:"페슬러 강아지 배변패드",date:"2026-04-19",group:"apr19",ppc_b:581.0,ppc_a:1232.6,dc_b:726.4,dc_a:86.0,shd_b:11.35,shd_a:28.15},
+  {sku:"A21002163",name:"농심 짜파게티 범벅 70g",date:"2026-04-26",group:"apr26",ppc_b:5848.6,ppc_a:11580.6,dc_b:8105.4,dc_a:6.4,shd_b:7.38,shd_a:13.87},
+];
+
+const GROUP_COLOR = {apr05:'#ef4444',apr12:'#f59e0b',apr19:'#10b981',apr26:'#8b5cf6'};
+let activeSkus = new Set(); // 빈 = 전체
+
+// ── KPI 요약 ──
+function renderKPI(filtered) {
+  const F = filtered.length ? filtered : DATA;
+  const n = F.length;
+  const ppcB = F.reduce((s,d)=>s+d.ppc_b,0);
+  const ppcA = F.reduce((s,d)=>s+d.ppc_a,0);
+  const shdB = F.reduce((s,d)=>s+d.shd_b,0)/n;
+  const shdA = F.reduce((s,d)=>s+d.shd_a,0)/n;
+  const ppcD = ppcA-ppcB; const shdD = shdA-shdB;
+  const fmt  = v=>Math.round(v).toLocaleString('ko');
+  const fmtF = v=>v.toFixed(2);
+
+  document.getElementById('kpiBar').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-icon">📦</div>
+      <div class="kpi-body">
+        <div class="kpi-label">${n}개 SKU 전체 PPC 일평균 재고수량</div>
+        <div class="kpi-nums">
+          <span class="kpi-before">${fmt(ppcB)}개</span>
+          <span class="kpi-arrow">→</span>
+          <span class="kpi-after">${fmt(ppcA)}개</span>
+          <span class="kpi-delta pos">${ppcD>=0?'+':''}${fmt(ppcD)}개 (${((ppcD/ppcB)*100).toFixed(1)}%)</span>
+        </div>
+        <div class="kpi-sub">변경일 기준 이전 기간 vs 이후 기간 평균</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📅</div>
+      <div class="kpi-body">
+        <div class="kpi-label">${n}개 SKU 전체 PPC 평균 SHD</div>
+        <div class="kpi-nums">
+          <span class="kpi-before">${fmtF(shdB)}일</span>
+          <span class="kpi-arrow">→</span>
+          <span class="kpi-after">${fmtF(shdA)}일</span>
+          <span class="kpi-delta amber">${shdD>=0?'+':''}${fmtF(shdD)}일 (${((shdD/shdB)*100).toFixed(1)}%)</span>
+        </div>
+        <div class="kpi-sub">PPC 센터 전체 평균 SHD</div>
+      </div>
+    </div>`;
+}
+
+// ── SKU 필터 필 ──
+const pillWrap = document.getElementById('pillContainer');
+// 전체 필
+const allPill = document.createElement('span');
+allPill.className = 'pill active';
+allPill.innerHTML = '전체';
+allPill.onclick = () => { activeSkus.clear(); updateAll(); };
+pillWrap.appendChild(allPill);
+
+DATA.forEach(d=>{
+  const p = document.createElement('span');
+  p.className = 'pill';
+  p.dataset.sku = d.sku;
+  p.innerHTML = `<span class="dot dot-${d.group}"></span>${d.sku}`;
+  p.title = d.name;
+  p.onclick = () => toggleSku(d.sku);
+  pillWrap.appendChild(p);
+});
+
+function toggleSku(sku){
+  if(activeSkus.has(sku)) activeSkus.delete(sku);
+  else activeSkus.add(sku);
+  updateAll();
+}
+
+function updateAll(){
+  const filtered = activeSkus.size ? DATA.filter(d=>activeSkus.has(d.sku)) : DATA;
+
+  // 필 상태
+  document.querySelectorAll('.pill').forEach(p=>{
+    if(!p.dataset.sku){ p.classList.toggle('active', activeSkus.size===0); return; }
+    p.classList.toggle('active', activeSkus.has(p.dataset.sku));
+  });
+
+  // KPI
+  renderKPI(filtered);
+
+  // 카드 숨김/표시
+  document.querySelectorAll('.sku-card').forEach(c=>{
+    const show = activeSkus.size===0 || activeSkus.has(c.dataset.sku);
+    c.classList.toggle('hidden', !show);
+  });
+
+  // 그룹 헤더 숨김
+  ['apr05','apr12','apr19','apr26'].forEach(g=>{
+    const grp = document.getElementById('group_'+g);
+    const visible = [...grp.querySelectorAll('.sku-card')].some(c=>!c.classList.contains('hidden'));
+    grp.style.display = visible ? '' : 'none';
+  });
+
+  // 빈 결과
+  const anyVisible = document.querySelectorAll('.sku-card:not(.hidden)').length > 0;
+  document.getElementById('noResult').style.display = anyVisible ? 'none' : 'block';
+
+  // 차트 업데이트
+  updateCharts(filtered);
+}
+
+// ── 카드 렌더링 ──
+function pct(b,a){ return b===0?'':((a-b)/b*100).toFixed(1); }
+function fmt(v){ return v==null?'-':Math.round(v).toLocaleString('ko'); }
+
+function makeCard(d){
+  const ppc_p = pct(d.ppc_b,d.ppc_a);
+  const dc_p  = pct(d.dc_b, d.dc_a);
+  const shd_p = pct(d.shd_b,d.shd_a);
+
+  const ppcCls = d.ppc_a>d.ppc_b?'up':d.ppc_a<d.ppc_b?'down':'';
+  const ppcBg  = d.ppc_a>d.ppc_b?'up-bg':d.ppc_a<d.ppc_b?'down-bg':'neu-bg';
+  const dcCls  = d.dc_a<d.dc_b?'down':d.dc_a>d.dc_b?'up':'';
+  const dcBg   = d.dc_a<d.dc_b?'down-bg':d.dc_a>d.dc_b?'up-bg':'neu-bg';
+  const shdCls = d.shd_a>d.shd_b?'amber':'blue';
+  const shdBg  = d.shd_a>d.shd_b?'amber-bg':'blue-bg';
+
+  return `<div class="sku-card" data-sku="${d.sku}" data-group="${d.group}">
+    <div class="sku-top">
+      <div>
+        <span class="sku-code-badge">${d.sku}</span>
+        <div class="sku-name">${d.name}</div>
+      </div>
+      <span style="font-size:10px;background:${GROUP_COLOR[d.group]}22;color:${GROUP_COLOR[d.group]};padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap">${d.date.slice(5).replace('-','/')}</span>
+    </div>
+    <div class="metric-row">
+      <div class="metric">
+        <div class="m-label">PPC 재고</div>
+        <div class="m-before">${fmt(d.ppc_b)}</div>
+        <div class="m-arrow ${ppcCls}">${d.ppc_a>d.ppc_b?'↑':d.ppc_a<d.ppc_b?'↓':'→'}</div>
+        <div class="m-after ${ppcCls}">${fmt(d.ppc_a)}</div>
+        <div class="m-badge ${ppcBg}">${ppc_p?(ppc_p>0?'+':'')+ppc_p+'%':'-'}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">DC 재고</div>
+        <div class="m-before">${fmt(d.dc_b)}</div>
+        <div class="m-arrow ${dcCls}">${d.dc_a<d.dc_b?'↓':d.dc_a>d.dc_b?'↑':'→'}</div>
+        <div class="m-after ${dcCls}">${fmt(d.dc_a)}</div>
+        <div class="m-badge ${dcBg}">${dc_p?(dc_p>0?'+':'')+dc_p+'%':'-'}</div>
+      </div>
+      <div class="metric">
+        <div class="m-label">PPC SHD</div>
+        <div class="m-before">${d.shd_b}일</div>
+        <div class="m-arrow ${shdCls}">${d.shd_a>d.shd_b?'↑':'↓'}</div>
+        <div class="m-after ${shdCls}">${d.shd_a}일</div>
+        <div class="m-badge ${shdBg}">${shd_p?(shd_p>0?'+':'')+shd_p+'%':'-'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+['apr05','apr12','apr19','apr26'].forEach(g=>{
+  const el = document.getElementById('cards_'+g);
+  DATA.filter(d=>d.group===g).forEach(d=>{ el.innerHTML += makeCard(d); });
+});
+
+// ── 차트 ──
+let chartPPC, chartDC, chartSHD;
+
+function makeBarChart(id, d1, d2, c1, c2, lbl1, lbl2){
+  const ctx = document.getElementById(id).getContext('2d');
+  const pctData = d1.map((b,i)=> b===0 ? null : +((d2[i]-b)/b*100).toFixed(1));
+
+  return new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: DATA.map(d=>[d.sku, d.name]),
+      datasets:[
+        {
+          label:lbl1, data:d1,
+          backgroundColor:c1+'99', borderColor:c1, borderWidth:1, borderRadius:3,
+          datalabels:{ display:false }
+        },
+        {
+          label:lbl2, data:d2,
+          backgroundColor:c2+'99', borderColor:c2, borderWidth:1, borderRadius:3,
+          datalabels:{
+            display: true,
+            anchor: 'end',
+            align: 'end',
+            offset: 2,
+            font: { size: 9, weight: '700' },
+            formatter: (_,ctx) => {
+              const v = pctData[ctx.dataIndex];
+              if(v===null) return '';
+              return (v>=0?'+':'')+v+'%';
+            },
+            color: (ctx) => {
+              const v = pctData[ctx.dataIndex];
+              if(v===null) return '#94a3b8';
+              return v>=0 ? c2 : '#10b981';
+            }
+          }
+        },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout: { padding: { top: 20 } },
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:12}},
+        tooltip:{callbacks:{
+          label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('ko',{maximumFractionDigits:1})}`,
+          afterLabel:(c)=>{
+            if(c.datasetIndex!==1) return '';
+            const v = pctData[c.dataIndex];
+            return v!==null ? `증감률: ${v>=0?'+':''}${v}%` : '';
+          }
+        }},
+        datalabels:{}
+      },
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:45}},
+        y:{ticks:{font:{size:10}},beginAtZero:true}
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function initCharts(){
+  chartPPC = makeBarChart('cPPC', DATA.map(d=>d.ppc_b), DATA.map(d=>d.ppc_a), '#3b82f6','#ef4444','변경 전','변경 후');
+  chartDC  = makeBarChart('cDC',  DATA.map(d=>d.dc_b),  DATA.map(d=>d.dc_a),  '#8b5cf6','#10b981','변경 전','변경 후');
+  chartSHD = makeBarChart('cSHD', DATA.map(d=>d.shd_b), DATA.map(d=>d.shd_a), '#0ea5e9','#f59e0b','변경 전 SHD','변경 후 SHD');
+}
+
+function updateCharts(filtered){
+  const skus = filtered.map(d=>d.sku);
+  const idx  = filtered.length===DATA.length ? DATA.map((_,i)=>i) : DATA.map((d,i)=>skus.includes(d.sku)?i:-1).filter(i=>i>=0);
+
+  function setPct(ch, b_arr, a_arr){
+    const pct = b_arr.map((b,i)=> b===0 ? null : +((a_arr[i]-b)/b*100).toFixed(1));
+    ch.data.datasets[1].datalabels.formatter = (_,ctx) => {
+      const v = pct[ctx.dataIndex]; return v===null?'':(v>=0?'+':'')+v+'%';
+    };
+  }
+
+  [chartPPC,chartDC,chartSHD].forEach(ch=>{
+    if(!ch) return;
+    ch.data.labels = idx.map(i=>[DATA[i].sku, DATA[i].name]);
+    let b_arr, a_arr;
+    if(ch===chartPPC){ b_arr=idx.map(i=>DATA[i].ppc_b); a_arr=idx.map(i=>DATA[i].ppc_a); }
+    if(ch===chartDC) { b_arr=idx.map(i=>DATA[i].dc_b);  a_arr=idx.map(i=>DATA[i].dc_a); }
+    if(ch===chartSHD){ b_arr=idx.map(i=>DATA[i].shd_b); a_arr=idx.map(i=>DATA[i].shd_a); }
+    ch.data.datasets[0].data = b_arr;
+    ch.data.datasets[1].data = a_arr;
+    setPct(ch, b_arr, a_arr);
+    ch.update();
+  });
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const idx = ['all','bydate'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// 초기화
+renderKPI([]);
+initCharts();
+</script>
+</body>
+</html>
