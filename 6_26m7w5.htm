@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>6차 PPC 주간 트렌드 비교</title>
-<script>/* Chart.js v4.4.1 */
+<title>6차 PPC 정책서 확산 · 운영 KPI 대시보드</title>
+<script>/* Chart.js v4.4.1 inline */
 /*!
  * Chart.js v4.4.1
  * https://www.chartjs.org
@@ -23,349 +23,643 @@
 </script>
 <style>
   :root {
-    --navy:#1F3864; --navy-light:#2E5395; --bg:#F6F8FB; --card-bg:#fff; --line:#E1E5EC;
-    --good:#2E7D32; --bad:#C62828; --muted:#6B7280;
-    --t1:#4472C4; --t2:#ED7D31; --t3:#70AD47; --t4:#7030A0; --g1:#5B9BD5; --g2:#F1975A;
-    --all:#333; --sixth:#1F3864; --target:#C00000;
+    --navy: #1F3864; --navy-light: #2E5395;
+    --bg: #F6F8FB; --card-bg: #ffffff; --line: #E1E5EC;
+    --good: #2E7D32; --good-bg: #E8F5E9;
+    --bad: #C62828; --bad-bg: #FFEBEE;
+    --muted: #6B7280;
+    --g1: #E7F0F9; --g2: #FCE7D6;
+    --t1: #4472C4; --t2: #ED7D31; --t3: #70AD47; --t4: #7030A0;
   }
-  * { box-sizing:border-box; }
-  html,body { margin:0; padding:0; font-family:'Pretendard','맑은 고딕','Malgun Gothic',sans-serif; background:var(--bg); color:#222; }
-  header { background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%); color:#fff; padding:24px 36px; }
-  header h1 { margin:0; font-size:22px; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; font-family:'Pretendard','맑은 고딕','Malgun Gothic','Apple SD Gothic Neo',sans-serif; background:var(--bg); color:#222; }
+  header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color:white; padding:28px 36px; }
+  header h1 { margin:0; font-size:26px; letter-spacing:-0.5px; }
   header .sub { margin-top:6px; font-size:13px; opacity:0.85; }
-  nav.tabs { background:#fff; border-bottom:1px solid var(--line); padding:0 36px; display:flex; gap:6px; position:sticky; top:0; z-index:100; }
-  nav.tabs button { border:none; background:transparent; font-family:inherit; font-size:14px; font-weight:600; padding:14px 20px; cursor:pointer; color:var(--muted); border-bottom:3px solid transparent; transition:0.15s; }
+  nav.tabs { background:var(--card-bg); border-bottom:1px solid var(--line); padding:0 36px; display:flex; gap:4px; position:sticky; top:0; z-index:100; overflow-x:auto; }
+  nav.tabs button { border:none; background:transparent; font-family:inherit; font-size:14px; font-weight:600; padding:14px 18px; cursor:pointer; color:var(--muted); border-bottom:3px solid transparent; transition:0.15s; white-space:nowrap; }
   nav.tabs button:hover { color:var(--navy); }
   nav.tabs button.active { color:var(--navy); border-bottom-color:var(--navy); }
-  main { padding:24px 36px 60px; }
+  main { padding:28px 36px 60px; }
   section { display:none; }
   section.active { display:block; animation:fadein 0.2s ease; }
-  @keyframes fadein { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-  .legend-row { display:flex; gap:14px; align-items:center; margin:8px 0 14px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+  @keyframes fadein { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  h2.section-title { margin:0 0 16px; font-size:18px; color:var(--navy); border-left:4px solid var(--navy); padding-left:12px; }
+  h3.sub-title { margin:28px 0 12px; font-size:15px; color:var(--navy); border-left:3px solid var(--navy-light); padding-left:10px; }
+  .note { font-size:12px; color:var(--muted); font-weight:400; margin-left:8px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; margin-bottom:28px; }
+  .kpi-card { background:var(--card-bg); border-radius:12px; padding:18px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border-top:4px solid var(--navy); }
+  .kpi-card.good { border-top-color:var(--good); }
+  .kpi-card.bad { border-top-color:var(--bad); }
+  .kpi-label { font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:600; }
+  .kpi-value { font-size:30px; font-weight:800; color:var(--navy); line-height:1.1; }
+  .kpi-target { font-size:12px; color:var(--muted); margin-top:6px; }
+  .kpi-gap-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; }
+  .kpi-gap { font-size:14px; font-weight:700; }
+  .kpi-gap.good { color:var(--good); } .kpi-gap.bad { color:var(--bad); }
+  .kpi-status { padding:3px 10px; border-radius:12px; font-weight:700; font-size:11px; }
+  .kpi-status.good { background:var(--good-bg); color:var(--good); }
+  .kpi-status.bad { background:var(--bad-bg); color:var(--bad); }
+  .info-banner { background:#E8F4FD; color:#1565C0; padding:10px 14px; border-radius:8px; font-size:12px; margin-bottom:14px; border-left:4px solid #1976D2; }
+  .insight-box { background:linear-gradient(135deg, #FFF8E7 0%, #FFF3D6 100%); border-left:5px solid #F59E0B; padding:16px 20px; border-radius:10px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+  .insight-box .insight-title { font-size:13px; font-weight:700; color:#92400E; margin-bottom:10px; letter-spacing:0.3px; }
+  .insight-box ul { margin:0; padding:0; list-style:none; }
+  .insight-box li { font-size:14px; color:#1F2937; padding:5px 0; line-height:1.5; }
+  .insight-box li b.good { color:var(--good); }
+  .insight-box li b.bad { color:var(--bad); }
+  .chart-grid { display:grid; gap:18px; }
+  .chart-grid.cols-5 { grid-template-columns:repeat(5, 1fr); }
+  .chart-grid.cols-1 { grid-template-columns:1fr; }
+  .chart-box { background:var(--card-bg); border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .chart-box .ttl { font-size:14px; font-weight:700; color:var(--navy); margin-bottom:4px; }
+  .chart-box .ttl-sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
+  .chart-wrap { position:relative; height:520px; }
+  .chart-wrap.team { height:280px; }
+  .legend-row { display:flex; gap:14px; font-size:12px; color:var(--muted); align-items:center; margin:4px 0 8px; flex-wrap:wrap; }
   .legend-row span { display:inline-flex; align-items:center; gap:5px; }
-  .legend-row .dot { width:14px; height:3px; display:inline-block; border-radius:2px; }
-  .legend-row .dash { width:22px; border-top:2px dashed var(--target); height:0; display:inline-block; }
-  .chart-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
-  .chart-grid.ppc { grid-template-columns:repeat(3,1fr); gap:14px; }
-  .chart-box { background:#fff; border-radius:10px; padding:16px 20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
-  .chart-box .ttl { font-size:14px; font-weight:700; color:var(--navy); }
-  .chart-box .sub { font-size:11px; color:var(--muted); margin-bottom:10px; }
-  .chart-wrap { position:relative; height:400px; }
-  .chart-wrap.mini { height:200px; }
-  .ppc-card { background:#fff; border-radius:10px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border-top:3px solid var(--navy); }
-  .ppc-card.t1팀 { border-top-color:var(--t1); }
-  .ppc-card.t2팀 { border-top-color:var(--t2); }
-  .ppc-card.t3팀 { border-top-color:var(--t3); }
-  .ppc-card.t4팀 { border-top-color:var(--t4); }
-  .ppc-card .name { font-size:14px; font-weight:700; color:var(--navy); }
-  .ppc-card .team { font-size:10px; color:#fff; padding:2px 7px; border-radius:8px; margin-left:6px; font-weight:700; }
-  .team.t1팀 { background:var(--t1); } .team.t2팀 { background:var(--t2); }
-  .team.t3팀 { background:var(--t3); } .team.t4팀 { background:var(--t4); }
-  .filter-row { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-  .filter-row .lbl { font-size:12px; color:var(--muted); font-weight:600; margin-right:4px; }
-  .filter-row button { font-family:inherit; font-size:12px; padding:6px 14px; border:1px solid var(--line); border-radius:14px; background:#fff; color:var(--muted); cursor:pointer; font-weight:600; transition:0.12s; }
-  .filter-row button:hover { border-color:var(--navy); color:var(--navy); }
-  .filter-row button.active { background:var(--navy); border-color:var(--navy); color:#fff; }
-  .filter-row button.t1팀.active { background:var(--t1); border-color:var(--t1); }
-  .filter-row button.t2팀.active { background:var(--t2); border-color:var(--t2); }
-  .filter-row button.t3팀.active { background:var(--t3); border-color:var(--t3); }
-  .filter-row button.t4팀.active { background:var(--t4); border-color:var(--t4); }
+  .legend-row .dot { width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .legend-row .dash { width:22px; height:0; border-top:2px dashed #C00000; display:inline-block; }
+  .ppc-cards { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-top:18px; }
+  .ppc-card { background:var(--card-bg); border-radius:12px; padding:12px 14px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.06); border-top:3px solid var(--navy); transition:transform 0.15s ease; }
+  .ppc-card.team-1팀 { border-top-color:var(--t1); }
+  .ppc-card.team-2팀 { border-top-color:var(--t2); }
+  .ppc-card.team-3팀 { border-top-color:var(--t3); }
+  .ppc-card.team-4팀 { border-top-color:var(--t4); }
+  .ppc-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+  .ppc-card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .ppc-name { font-weight:700; font-size:14px; color:var(--navy); }
+  .team-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; color:white; }
+  .team-badge.t1팀 { background:var(--t1); }
+  .team-badge.t2팀 { background:var(--t2); }
+  .team-badge.t3팀 { background:var(--t3); }
+  .team-badge.t4팀 { background:var(--t4); }
+  .ppc-card-stats { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:11px; color:var(--muted); }
+  .ppc-card-stats .avg { font-weight:700; font-size:13px; color:var(--navy); }
+  .ppc-card-stats .avg.bad { color:var(--bad); } .ppc-card-stats .avg.good { color:var(--good); }
+  .ppc-card-chart { position:relative; height:140px; margin-top:6px; }
+  .team-filter { display:flex; gap:6px; align-items:center; margin:8px 0 14px; flex-wrap:wrap; }
+  .team-filter .lbl { font-size:12px; color:var(--muted); margin-right:4px; font-weight:600; }
+  .team-filter button { font-family:inherit; font-size:12px; padding:5px 14px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--muted); cursor:pointer; transition:0.12s; font-weight:600; }
+  .team-filter button:hover { border-color:var(--navy); color:var(--navy); }
+  .team-filter button.active { background:var(--navy); border-color:var(--navy); color:white; }
+  .team-filter button.t1팀.active { background:var(--t1); border-color:var(--t1); }
+  .team-filter button.t2팀.active { background:var(--t2); border-color:var(--t2); }
+  .team-filter button.t3팀.active { background:var(--t3); border-color:var(--t3); }
+  .team-filter button.t4팀.active { background:var(--t4); border-color:var(--t4); }
   footer { text-align:center; font-size:11px; color:var(--muted); padding:20px; }
-  @media (max-width:1400px) { .chart-grid.ppc { grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:900px) { .chart-grid, .chart-grid.ppc { grid-template-columns:1fr; } }
+  @media (max-width:1200px) { .ppc-cards { grid-template-columns:repeat(3, 1fr); } .chart-grid.cols-5 { grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:800px) { .kpi-grid { grid-template-columns:repeat(2, 1fr); } .ppc-cards { grid-template-columns:repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 <header>
-  <h1>📈 6차 PPC 주간 트렌드 비교</h1>
-  <div class="sub">최근 5주 (26년 7월 1주 ~ 26년 7월 5주) · 전체 · 그룹 · 팀 · PPC 4계층 뷰</div>
+  <h1>🏬 6차 PPC 정책서 확산  ·  운영 KPI 대시보드</h1>
+  <div class="sub">기간: <span id="rangeInfo"></span> &nbsp;|&nbsp; 17개 PPC (그룹1: 1·2팀 10개점 / 그룹2: 3·4팀 7개점)</div>
 </header>
 
 <nav class="tabs" id="tabBar">
-  <button data-tab="overall" class="active">📊 전체</button>
-  <button data-tab="group">🏢 그룹별</button>
-  <button data-tab="team">👥 팀별</button>
-  <button data-tab="ppc">🏪 PPC별</button>
+  <button data-tab="summary" class="active">📊 Summary</button>
+  <button data-tab="piph">피패킹</button>
+  <button data-tab="wait">대기</button>
+  <button data-tab="pick">피킹</button>
+  <button data-tab="pack">패킹</button>
+  <button data-tab="bo">백오더</button>
 </nav>
 
 <main>
-  <section id="sec-overall" class="active">
+  <section id="sec-summary" class="active">
+    <div class="insight-box">
+      <div class="insight-title">📌 한눈에 보기 (자동 생성)</div>
+      <ul id="insightList"></ul>
+    </div>
+
+    <h2 class="section-title">최근 주차(W-0) 6차 PPC 실적 vs 목표 <span class="note">ⓘ 소스파일 '6차 PPC' 행 값</span></h2>
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <h3 class="sub-title">최근 7일 팀 실적 집계 <span class="note">소스파일의 팀 집계행 사용 (정식 가중집계)</span></h3>
+    <div class="info-banner">✅ <strong>팀별 raw값이 양식에 포함되어 정식 집계 적용</strong> · 17PPC 단순평균이 아닌 팀 단위 가중평균 사용</div>
+    <div class="chart-grid cols-5" id="teamGrid"></div>
+  </section>
+
+  <section id="sec-piph">
+    <h2 class="section-title">피패킹 생산성 상세  ·  목표 <span id="tgt-piph"></span></h2>
     <div class="legend-row">
-      <span><span class="dot" style="background:#4472C4"></span>6차 PPC</span>
-      <span><span class="dot" style="background:#ED7D31"></span>전체(회사)</span>
-      <span><span class="dash"></span>🎯 목표</span>
+      <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
+      <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
+      <span><span class="dash"></span>🎯 목표선</span>
     </div>
-    <div class="chart-grid" id="overallGrid"></div>
-  </section>
 
-  <section id="sec-group">
-    <div class="filter-row" data-scope="group">
-      <span class="lbl">필터:</span>
-      <button data-key="all" class="active">전체 표시</button>
-      <button data-key="그룹1">그룹1만</button>
-      <button data-key="그룹2">그룹2만</button>
-    </div>
-    <div class="legend-row" id="groupLegend"></div>
-    <div class="chart-grid" id="groupGrid"></div>
-  </section>
-
-  <section id="sec-team">
-    <div class="filter-row" data-scope="team">
-      <span class="lbl">필터:</span>
-      <button data-key="all" class="active">전체 표시</button>
-      <button data-key="1팀" class="t1팀">1팀만</button>
-      <button data-key="2팀" class="t2팀">2팀만</button>
-      <button data-key="3팀" class="t3팀">3팀만</button>
-      <button data-key="4팀" class="t4팀">4팀만</button>
-    </div>
-    <div class="legend-row" id="teamLegend"></div>
-    <div class="chart-grid" id="teamGrid"></div>
-  </section>
-
-  <section id="sec-ppc">
-    <div class="filter-row" data-scope="ppcMetric">
-      <span class="lbl">지표:</span>
-      <span id="metricFilter"></span>
-    </div>
-    <div class="filter-row" data-scope="ppcTeam">
+    <div class="team-filter" data-metric="piph">
       <span class="lbl">팀 필터:</span>
-      <button data-key="all" class="active">전체 17개</button>
-      <button data-key="1팀" class="t1팀">1팀</button>
-      <button data-key="2팀" class="t2팀">2팀</button>
-      <button data-key="3팀" class="t3팀">3팀</button>
-      <button data-key="4팀" class="t4팀">4팀</button>
+      <button data-team="all" class="active">전체 17개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
     </div>
-    <div class="legend-row">
-      <span><span class="dot" style="background:#1F3864"></span>해당 PPC</span>
-      <span><span class="dot" style="background:#999"></span>6차 평균</span>
-      <span><span class="dash"></span>🎯 목표</span>
-      <span style="margin-left:auto">테두리 색 = 팀</span>
+
+    <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
+    <div class="chart-box">
+      <div class="ttl-sub">PPC 17개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
+      <div class="chart-wrap"><canvas id="chartW0-piph"></canvas></div>
     </div>
-    <div class="chart-grid ppc" id="ppcGrid"></div>
+
+    <h3 class="sub-title">최근 7일 PPC별 실적 카드 <span class="note">각 카드 = PPC × 7일 세로막대 · 동일 Y축</span></h3>
+    <div class="ppc-cards" id="cards-piph"></div>
   </section>
+
+  <section id="sec-wait">
+    <h2 class="section-title">대기 생산성 상세  ·  목표 <span id="tgt-wait"></span></h2>
+    <div class="legend-row">
+      <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
+      <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
+      <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="wait">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 17개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
+    <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
+    <div class="chart-box">
+      <div class="ttl-sub">PPC 17개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
+      <div class="chart-wrap"><canvas id="chartW0-wait"></canvas></div>
+    </div>
+
+    <h3 class="sub-title">최근 7일 PPC별 실적 카드 <span class="note">각 카드 = PPC × 7일 세로막대 · 동일 Y축</span></h3>
+    <div class="ppc-cards" id="cards-wait"></div>
+  </section>
+
+  <section id="sec-pick">
+    <h2 class="section-title">피킹 생산성 상세  ·  목표 <span id="tgt-pick"></span></h2>
+    <div class="legend-row">
+      <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
+      <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
+      <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="pick">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 17개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
+    <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
+    <div class="chart-box">
+      <div class="ttl-sub">PPC 17개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
+      <div class="chart-wrap"><canvas id="chartW0-pick"></canvas></div>
+    </div>
+
+    <h3 class="sub-title">최근 7일 PPC별 실적 카드 <span class="note">각 카드 = PPC × 7일 세로막대 · 동일 Y축</span></h3>
+    <div class="ppc-cards" id="cards-pick"></div>
+  </section>
+
+  <section id="sec-pack">
+    <h2 class="section-title">패킹 생산성 상세  ·  목표 <span id="tgt-pack"></span></h2>
+    <div class="legend-row">
+      <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
+      <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
+      <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="pack">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 17개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
+    <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
+    <div class="chart-box">
+      <div class="ttl-sub">PPC 17개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
+      <div class="chart-wrap"><canvas id="chartW0-pack"></canvas></div>
+    </div>
+
+    <h3 class="sub-title">최근 7일 PPC별 실적 카드 <span class="note">각 카드 = PPC × 7일 세로막대 · 동일 Y축</span></h3>
+    <div class="ppc-cards" id="cards-pack"></div>
+  </section>
+
+  <section id="sec-bo">
+    <h2 class="section-title">백오더율 상세  ·  목표 <span id="tgt-bo"></span></h2>
+    <div class="legend-row">
+      <span><span class="dot" style="background:#2E7D32"></span>목표 달성</span>
+      <span><span class="dot" style="background:#C62828"></span>목표 미달</span>
+      <span><span class="dash"></span>🎯 목표선</span>
+    </div>
+
+    <div class="team-filter" data-metric="bo">
+      <span class="lbl">팀 필터:</span>
+      <button data-team="all" class="active">전체 17개</button>
+      <button data-team="1팀" class="t1팀">1팀</button>
+      <button data-team="2팀" class="t2팀">2팀</button>
+      <button data-team="3팀" class="t3팀">3팀</button>
+      <button data-team="4팀" class="t4팀">4팀</button>
+    </div>
+
+    <h3 class="sub-title">최근 주(W-0) PPC별 랭킹</h3>
+    <div class="chart-box">
+      <div class="ttl-sub">PPC 17개 가장 최근 주 실적 정렬 · 막대색 = 목표 달성 여부</div>
+      <div class="chart-wrap"><canvas id="chartW0-bo"></canvas></div>
+    </div>
+
+    <h3 class="sub-title">최근 7일 PPC별 실적 카드 <span class="note">각 카드 = PPC × 7일 세로막대 · 동일 Y축</span></h3>
+    <div class="ppc-cards" id="cards-bo"></div>
+  </section>
+
 </main>
+<footer>차트: Chart.js v4 · 데이터 출처: 6차 정책 확산 PPC 관리 시트 · 자동 추출</footer>
 
-<footer>Chart.js v4 · 자동 생성 · 매주 갱신 (같은 URL 유지)</footer>
-
-<script id="dataset" type="application/json">{"weekLabels": ["26년 7월 1주", "26년 7월 2주", "26년 7월 3주", "26년 7월 4주", "26년 7월 5주"], "metrics": [{"key": "piph", "name": "피패킹 생산성", "unit": "건/MH", "target": 14.88, "dir": "high", "fmt": "num"}, {"key": "wait", "name": "대기 생산성", "unit": "분", "target": 1.0, "dir": "low", "fmt": "num"}, {"key": "pick", "name": "피킹 생산성", "unit": "분", "target": 1.9, "dir": "low", "fmt": "num"}, {"key": "pack", "name": "패킹 생산성", "unit": "분", "target": 1.2, "dir": "low", "fmt": "num"}, {"key": "bo", "name": "백오더율", "unit": "%", "target": 0.00059, "dir": "low", "fmt": "pct"}], "ppcs": [{"group": "그룹1", "team": "1팀", "name": "용인기흥점"}, {"group": "그룹1", "team": "1팀", "name": "서초교대점"}, {"group": "그룹1", "team": "1팀", "name": "서초반포점"}, {"group": "그룹1", "team": "1팀", "name": "평택점"}, {"group": "그룹1", "team": "1팀", "name": "송파문정점"}, {"group": "그룹1", "team": "2팀", "name": "동대문제기점"}, {"group": "그룹1", "team": "2팀", "name": "원주점"}, {"group": "그룹1", "team": "2팀", "name": "청주흥덕점"}, {"group": "그룹1", "team": "2팀", "name": "대전중구점"}, {"group": "그룹1", "team": "2팀", "name": "중랑면목점"}, {"group": "그룹2", "team": "3팀", "name": "인천검단점"}, {"group": "그룹2", "team": "3팀", "name": "시흥점"}, {"group": "그룹2", "team": "3팀", "name": "부산동래점"}, {"group": "그룹2", "team": "4팀", "name": "강서가양점"}, {"group": "그룹2", "team": "4팀", "name": "동작상도점"}, {"group": "그룹2", "team": "4팀", "name": "군포점"}, {"group": "그룹2", "team": "4팀", "name": "대구중구점"}], "series": {"전체": {"piph": [14.24733121285295, 14.1591010345813, 14.23413716112473, 14.54287498960716, 14.47704084359215], "wait": [0.995459823428813, 1.014195413286024, 1.008533127679361, 0.9757745582582776, 0.9752695432071476], "pick": [2.073129216283927, 2.081694438284303, 2.060997572980697, 2.032199530829993, 2.053115377511876], "pack": [1.237137375917406, 1.234531425643692, 1.244684374078526, 1.211323116453519, 1.216482328683757], "bo": [0.0004087185055400637, 0.000419936994506447, 0.0005017095013450241, 0.0004822865955110699, 0.0004045779321933292]}, "6차 PPC": {"piph": [13.96762600502836, 13.99950972259349, 14.03158191967679, 14.45652536066902, 14.53597239549966], "wait": [1.002781395120274, 1.00642405766727, 1.001822614623524, 0.9591427497180101, 0.9487885506000046], "pick": [2.148144508055072, 2.135753866183989, 2.121286718583569, 2.079395914274972, 2.070122841205847], "pack": [1.223072638967378, 1.222974818202026, 1.232986957653798, 1.191267702719639, 1.189642521834492], "bo": [0.0004102184614394646, 0.0004672933589825466, 0.0006114551083591331, 0.0005377665785753795, 0.0003711493257453916]}, "그룹1": {"piph": [13.9202193562257, 13.86988253560939, 13.93681674666471, 14.41459772260593, 14.50889198101519], "wait": [1.028164163001079, 1.027690582959641, 1.016561123532326, 0.9712075861520939, 0.960584373654757], "pick": [2.137983788419509, 2.146333813794576, 2.126062683250104, 2.077901093952799, 2.070410030133448], "pack": [1.234872880183694, 1.245219410634209, 1.253852435971242, 1.204354620824835, 1.198530994403788], "bo": [0.0004876991438170587, 0.0004566567506915088, 0.0007071394898119532, 0.0006345588520959868, 0.0003415749231456423]}, "그룹2": {"piph": [14.0374931618591, 14.19598811217999, 14.17084618479281, 14.51811027940007, 14.57488769584748], "wait": [0.9659357870007828, 0.9752018183243204, 0.9806716876729173, 0.9416772115495223, 0.9320588403640319], "pick": [2.162893801578218, 2.120221020456149, 2.114432831232709, 2.081559875762107, 2.069715528590236], "pack": [1.205943417063229, 1.190316639235049, 1.20304334460498, 1.172322558380306, 1.177036231469292], "bo": [0.0002969826562128772, 0.000483045116413873, 0.0004731622378681202, 0.0003966080568093826, 0.0004134561172711896]}, "1팀": {"piph": [14.20169333165776, 13.82802532278144, 14.16073709177158, 14.42721200475799, 14.38852939807272], "wait": [1.027344857856709, 1.063003903303047, 1.053146160198183, 1.007705061933093, 1.002425652101678], "pick": [2.065959889256533, 2.116108505264539, 2.047630057803468, 2.024383107383204, 2.021997009470012], "pack": [1.232250658383415, 1.27105651589202, 1.245383980181668, 1.233395103872038, 1.247250373816248], "bo": [0.0005606120564569318, 0.0004477421005500832, 0.0005797848354055273, 0.0007293483431108292, 0.0003235408308528536]}, "2팀": {"piph": [13.73047848206635, 13.8988735651548, 13.78745930816271, 14.40590312815339, 14.59234394164353], "wait": [1.028732777204987, 1.003465268558313, 0.9916250168850466, 0.9461192929134914, 0.9321217874821998], "pick": [2.187969819102071, 2.167068697824081, 2.17952181548021, 2.11468925291081, 2.103343052824304], "pack": [1.236692754709907, 1.227494880853266, 1.259624476563555, 1.18439224975976, 1.165389570760155], "bo": [0.000436861951623287, 0.0004627997179125529, 0.0007943863365550113, 0.0005691270466684178, 0.00035390400353904]}, "3팀": {"piph": [13.31323161029497, 13.89567271131006, 13.85123768324922, 14.11955259458468, 14.2685088952742], "wait": [0.9996368093703183, 0.9788882950293959, 0.9775148958378637, 0.9319503515319852, 0.9131556319862425], "pick": [2.215076951014664, 2.088602351683591, 2.102726916887748, 2.084975262564014, 2.073946689595873], "pack": [1.296172878739728, 1.254814715838233, 1.262210237898491, 1.242600468709314, 1.230954428202923], "bo": [0.0002267882251553499, 0.0004004449388209121, 0.0004337642057777392, 0.0004761698627765032, 0.0006427010583144094]}, "4팀": {"piph": [14.65508215517228, 14.43546153953606, 14.42856450753355, 14.84236698160119, 14.82358195623046], "wait": [0.9392101094470044, 0.9723061852784773, 0.9831698502839442, 0.9493749141365574, 0.9471409460432888], "pick": [2.12151137672811, 2.145056675062972, 2.123696437790398, 2.078856985849705, 2.066339656296093], "pack": [1.134389400921659, 1.139655051777218, 1.156220960247806, 1.116705591427394, 1.134017082289987], "bo": [0.0003513579986648396, 0.000546448087431694, 0.0005036599288160634, 0.0003350308228357009, 0.0002343409996317499]}, "용인기흥점": {"piph": [13.74206740640705, 13.89493470518402, 14.0171358629131, 13.9801596902976, 14.06483790523691], "wait": [1.135017582824357, 1.116770629121369, 1.128806440322016, 1.139438085327783, 1.112533333333333], "pick": [2.089043124190265, 2.059579397611834, 2.020301015050753, 2.042663891779397, 2.039466666666667], "pack": [1.147751249305941, 1.147157369452861, 1.141407070353518, 1.121748178980229, 1.130666666666666], "bo": [0.0003696857670979667, 0.000177999288002848, 0.0001746419839329375, 0.0003461405330564209, 0.0001773049645390071]}, "서초교대점": {"piph": [14.78200900842655, 14.43927063840898, 14.56494057724958, 15.16923736075407, 14.39346972514982], "wait": [1.018486727070418, 1.050358286324135, 1.072352659319598, 0.9947660098522166, 1.017637795275591], "pick": [2.138229216340804, 2.192270163134625, 2.137997125059894, 2.044027093596059, 2.131653543307086], "pack": [1.268749006517247, 1.311831071809727, 1.30522280785817, 1.274630541871921, 1.366299212598425], "bo": [0.0004373815424989066, 0.0004173042147725692, 0.0002914177473408131, 0.0004236689733088547, 0.0001435750179468773]}, "서초반포점": {"piph": [17.37503860237353, 15.81082418126052, 16.07358870967742, 16.435546875, 16.32397191574724], "wait": [0.7373953488372093, 0.8604501607717042, 0.8324808184143222, 0.8234936092513695, 0.7963602133668026], "pick": [1.731317829457364, 1.858392282958199, 1.795396419437341, 1.762020693852709, 1.764041418261688], "pack": [1.045550387596899, 1.18096463022508, 1.185421994884911, 1.152160681679854, 1.186068402886727], "bo": [0.0003046922608165753, 0.0003128911138923655, 0.0003135779241141424, 0, 0.0003072196620583717]}, "평택점": {"piph": [13.33982373437181, 13.35403957467993, 13.56834103443136, 13.64381067961165, 13.91644500078235], "wait": [0.9925100980957875, 1.027600044588117, 1.043564574831808, 0.9890625000000002, 0.9984173637802398], "pick": [2.157611079053664, 2.129829450451455, 2.065291717216279, 2.081919642857143, 2.023287361519331], "pack": [1.354437391806117, 1.343105562367629, 1.331421638910334, 1.345982142857143, 1.314492425955234], "bo": [0.000576169624337405, 0.0005564210994880925, 0.0008788311545644293, 0.001445408049810985, 0.0003373060490218124]}, "송파문정점": {"piph": [13.91166076394305, 12.97416806427506, 13.90392422192152, 14.29929816617614, 14.49022839651519], "wait": [1.1451607557176, 1.179874919820398, 1.08992628992629, 1.023196288593825, 0.9985214391325777], "pick": [2.017185946304275, 2.195654265554843, 2.083538083538083, 2.042553191489362, 2.024642681123706], "pack": [1.194182963208485, 1.280933290570879, 1.184275184275184, 1.174852023676212, 1.165105963528832], "bo": [0.0009844134536505333, 0.0006370441153049849, 0.0009732360097323601, 0.0007916402786573781, 0.0006499837504062399]}, "동대문제기점": {"piph": [14.86259076250564, 14.32059315679469, 14.9410105155168, 15.26737616607542, 15.93432586614721], "wait": [1.181140984870386, 1.164427424563994, 1.099557522123894, 1.081111111111111, 1.05377154157642], "pick": [2.021162185602775, 2.189821906431669, 2.040929203539823, 2.017777777777777, 1.920519822958847], "pack": [1.10972342680929, 1.162212789517394, 1.133849557522124, 1.117777777777778, 1.085977964026745], "bo": [0.0007217610970768675, 0.0005136106831022085, 0.00102995451034246, 0.000774526678141136, 0.0002619629758994062]}, "원주점": {"piph": [15.1978818444639, 14.80785424694814, 14.67231822627975, 15.49111632584647, 15.36303349770447], "wait": [0.7929398280802293, 0.8051511377787842, 0.8212495823588373, 0.7801756859342803, 0.747918747918748], "pick": [2.071610315186246, 2.116098720706442, 2.171065820247243, 2.073744713154756, 2.078588078588079], "pack": [1.091965616045845, 1.090150571719688, 1.106582024724357, 1.031992191736254, 1.090909090909091], "bo": [0.0002287282708142727, 0.0003389447520054231, 0.0005555555555555556, 0.0006492101276779918, 0.0003320420586607637]}, "청주흥덕점": {"piph": [12.94463983949077, 13.45908521593914, 12.7721604314122, 13.25569446823086, 12.91917167668671], "wait": [0.973000693000693, 0.9519285529381311, 0.9715796430931923, 0.9268419008157451, 0.9558556219163854], "pick": [2.231018711018711, 2.135231685218742, 2.285789821546596, 2.185420173507704, 2.302778499091145], "pack": [1.438170478170478, 1.37714211752524, 1.449834765366821, 1.396866502654409, 1.403791223058946], "bo": [0.0005535566011624688, 0.0002584981258885873, 0.0007916611690196596, 0.0003875968992248062, 0.000517063081695967]}, "대전중구점": {"piph": [15.46029806228447, 15.77186490061789, 15.57377049180328, 15.58433734939759, 15.72129137719657], "wait": [0.9472024688045082, 0.9571483229179951, 0.9328649492583919, 0.9352963967454474, 0.9522197630516859], "pick": [1.88612639205689, 1.786953194745568, 1.797814207650273, 1.831848120883379, 1.797422210649655], "pack": [1.053307392996109, 1.064022446116567, 1.128024980483997, 1.091049980627664, 1.073297747689103], "bo": [0.0001339764201500536, 0.0001274047649382087, 0.0005198180636777127, 0.0002576987501610617, 0.0002599428125812321]}, "중랑면목점": {"piph": [11.14180535983665, 11.88712559791972, 11.65095509799057, 12.74056861673045, 13.21530147895336], "wait": [1.195531102627442, 1.086983920034767, 1.094646680942184, 0.979049676025918, 0.9354279523293608], "pick": [2.71404671008309, 2.53974358974359, 2.576659528907923, 2.446004319654427, 2.426002166847238], "pack": [1.516662923871547, 1.449815297696654, 1.507066381156317, 1.314686825053996, 1.20715059588299], "bo": [0.0004457321149988857, 0.0009722372258831155, 0.0009581603321622484, 0.000643707756678468, 0.0004304315075863553]}, "인천검단점": {"piph": [13.40044312771289, 14.17133181031903, 13.6661822711231, 14.00458619970815, 14.49162011173184], "wait": [0.9007471171024849, 0.9032168264769564, 0.9506398537477146, 0.9168035847647497, 0.8894052044609665], "pick": [2.216225434464837, 2.067939993813795, 2.140767824497258, 2.09798356982823, 1.995353159851301], "pack": [1.361945752801689, 1.266671821837303, 1.312614259597806, 1.283345780433159, 1.271375464684015], "bo": [0.000649456080532554, 0.0003090234857849196, 0.0003038128512836093, 0.0005954153021732659, 0.0006168080185042405]}, "시흥점": {"piph": [15.72590565798598, 15.48841490826834, 15.74702702702703, 15.45070719864893, 15.51515151515152], "wait": [0.8969364491308066, 0.9432959734329598, 0.8873588543101073, 0.8499863126197645, 0.8565430370888735], "pick": [1.766343687660302, 1.768465476684655, 1.774717708620215, 1.829728989871339, 1.829811056682995], "pack": [1.15914790538615, 1.166362252663623, 1.157532360231341, 1.21133315083493, 1.190762771168649], "bo": [0.0001422272791921491, 0.000691085003455425, 0.001098448441576274, 0.0006831534362617844, 0.0004185267857142857]}, "부산동래점": {"piph": [11.82015534222446, 12.64147406969535, 12.75756734240489, 13.27669547385382, 13.33792343706968], "wait": [1.149841843651152, 1.064116908322868, 1.06817933893313, 1.009401614865612, 0.9709079614866963], "pick": [2.570040668775418, 2.367998629980591, 2.335333260608705, 2.281606017033514, 2.307071125375298], "pack": [1.359060099412562, 1.319043269779655, 1.30904330751609, 1.237694945249419, 1.233668081581944], "bo": [0, 0.0002281021897810219, 0, 0.0002206531332744925, 0.0008259343382201115]}, "강서가양점": {"piph": [14.45678045030531, 14.19259307700033, 14.29112857944975, 14.54047217537942, 14.67240624543996], "wait": [0.8649603460706561, 0.9028051327961802, 0.9126944802299078, 0.9105627621184044, 0.8809882494727328], "pick": [2.245483571943558, 2.276385158659107, 2.227925874541671, 2.197405637374427, 2.160891834890027], "pack": [1.06978061592337, 1.079906495573461, 1.095827965513824, 1.057446600994831, 1.085266646580295], "bo": [0.0003067798343388895, 0.0005924170616113745, 0.0005893330714075238, 0.0001932927418575432, 9.945300845350572e-05]}, "동작상도점": {"piph": [15.66868684112698, 15.26640904129024, 15.22666154437188, 15.77608652112958, 15.71230158730159], "wait": [0.9434301913536499, 0.9895433852945233, 1.021137324423838, 0.9868204283360791, 0.9662951889100299], "pick": [2.082863217576187, 2.116153952269279, 2.08400381835538, 2.045304777594728, 2.047567273715684], "pack": [1.12975194897236, 1.150613877776245, 1.154507023046502, 1.080724876441516, 1.096765425387334], "bo": [0.0006529972574115189, 0.0005092297899427117, 0.0003784533871578151, 0.0002539037704709915, 0.0001262785705265816]}, "군포점": {"piph": [15.0233905101359, 15.28021251196455, 15.23319395303956, 15.45658442806793, 15.5009633911368], "wait": [0.9397729801914088, 0.9754070628039754, 0.9470338983050848, 0.8858808829654311, 0.9239424880183371], "pick": [1.863409748497663, 1.816261366039332, 1.808898305084746, 1.810495626822157, 1.789122733902896], "pack": [1.193256176274204, 1.140790864876295, 1.198728813559322, 1.200749687630154, 1.182746405501146], "bo": [0, 0.0004222972972972973, 0.001055743243243243, 0, 0.0002071680132587529]}, "대구중구점": {"piph": [13.6681937286947, 13.38283138366768, 13.33717800845828, 13.9344262295082, 13.74416796267496], "wait": [1.044838165362786, 1.057622462994048, 1.070467370858052, 1.012837538733953, 1.036510868021026], "pick": [null, null, null, null, null], "pack": [null, null, null, null, null], "bo": [null, null, null, null, null]}}}</script>
+<script id="dataset" type="application/json">{"dailyDates": ["07/27", "07/28", "07/29", "07/30", "07/31", "08/01", "None"], "weeklyLabels": ["26년 7월 1주", "26년 7월 2주", "26년 7월 3주", "26년 7월 4주", "26년 7월 5주"], "metrics": [{"key": "piph", "name": "피패킹 생산성", "unit": "건/MH", "target": 14.88, "dir": "high", "fmt": "num"}, {"key": "wait", "name": "대기 생산성", "unit": "분", "target": 1.0, "dir": "low", "fmt": "num"}, {"key": "pick", "name": "피킹 생산성", "unit": "분", "target": 1.9, "dir": "low", "fmt": "num"}, {"key": "pack", "name": "패킹 생산성", "unit": "분", "target": 1.2, "dir": "low", "fmt": "num"}, {"key": "bo", "name": "백오더율", "unit": "%", "target": 0.00059, "dir": "low", "fmt": "pct"}], "ppcs": [{"group": "그룹1", "team": "1팀", "name": "용인기흥점"}, {"group": "그룹1", "team": "1팀", "name": "서초교대점"}, {"group": "그룹1", "team": "1팀", "name": "서초반포점"}, {"group": "그룹1", "team": "1팀", "name": "평택점"}, {"group": "그룹1", "team": "1팀", "name": "송파문정점"}, {"group": "그룹1", "team": "2팀", "name": "동대문제기점"}, {"group": "그룹1", "team": "2팀", "name": "원주점"}, {"group": "그룹1", "team": "2팀", "name": "청주흥덕점"}, {"group": "그룹1", "team": "2팀", "name": "대전중구점"}, {"group": "그룹1", "team": "2팀", "name": "중랑면목점"}, {"group": "그룹2", "team": "3팀", "name": "인천검단점"}, {"group": "그룹2", "team": "3팀", "name": "시흥점"}, {"group": "그룹2", "team": "3팀", "name": "부산동래점"}, {"group": "그룹2", "team": "4팀", "name": "강서가양점"}, {"group": "그룹2", "team": "4팀", "name": "동작상도점"}, {"group": "그룹2", "team": "4팀", "name": "군포점"}, {"group": "그룹2", "team": "4팀", "name": "대구중구점"}], "teams": ["1팀", "2팀", "3팀", "4팀"], "daily": {"용인기흥점": {"piph": [14.68283582089552, 13.17708333333333, 13.45419847328244, 14.64583333333333, 13.81782945736434, 13.74269005847953, null], "wait": [1.045801526717557, 1.139841688654354, 1.237553342816501, 1.076923076923077, 1.164556962025316, 1.129411764705882, null], "pick": [1.984732824427481, 2.168865435356201, 2.02275960170697, 1.982905982905983, 2.067510548523207, 2.143315508021391, null], "pack": [1.061068702290076, 1.266490765171504, 1.211948790896159, 1.051282051282051, 1.130801687763713, 1.116577540106952, null], "bo": [0, 0, 0, 0, 0, 0, null]}, "서초교대점": {"piph": [14.52941176470588, 14.49251247920133, 13.85093167701863, 14.16149068322981, 14.94539781591264, 14.2170160295931, null], "wait": [0.9878453038674033, 1.096370463078849, 1.046341463414634, 0.9904306220095693, 1.019517795637199, 1.004757373929591, null], "pick": [1.896132596685083, 2.065081351689612, 2.195121951219512, 2.203349282296651, 2.073478760045924, 2.232159847764034, null], "pack": [1.239779005524862, 1.351689612015019, 1.463414634146341, 1.42822966507177, 1.315729047072331, 1.392959086584206, null], "bo": [0.001012145748987854, 0, 0, 0, 0, 0, null]}, "서초반포점": {"piph": [17.46376811594203, 15.24822695035461, 16.46808510638298, 16.56603773584906, 17.23404255319149, 15.94900849858357, null], "wait": [0.6962025316455697, 0.8693586698337292, 0.8503937007874014, 0.7850467289719627, 0.8244274809160306, 0.79491833030853, null], "pick": [1.658227848101266, 1.909738717339667, 1.732283464566929, 1.752336448598131, 1.633587786259542, 1.764065335753176, null], "pack": [1.139240506329114, 1.225653206650832, 1.118110236220473, 1.163551401869159, 1.129770992366412, 1.27404718693285, null], "bo": [0, 0, 0, 0, 0, 0, null]}, "평택점": {"piph": [14.21052631578947, 13.68421052631579, 14.20219244823386, 14.8472775564409, 13.47255369928401, 13.64406779661017, null], "wait": [0.964458804523425, 1.022222222222222, 0.9965576592082614, 0.9937332139659804, 1.042780748663102, 0.939203354297694, null], "pick": [1.962843295638126, 2.059259259259259, 1.941480206540448, 1.896150402864816, 2.080213903743316, 2.129979035639413, null], "pack": [1.308562197092084, 1.333333333333333, 1.301204819277108, 1.160250671441361, 1.363636363636364, 1.379454926624738, null], "bo": [0, 0, 0.0008576329331046312, 0, 0.0008857395925597874, 0.0006901311249137336, null]}, "송파문정점": {"piph": [13.78761061946903, 15.22641509433962, 14.73887814313346, 15.06, 13.90845070422535, 14.372574385511, null], "wait": [0.96, 0.9294710327455918, 0.9960159362549801, 1.022818791946309, 1.071428571428571, 1.02, null], "pick": [2.098064516129032, 2.002518891687657, 2.00796812749004, 1.892617449664429, 1.997448979591836, 2.061818181818182, null], "pack": [1.316129032258065, 1.080604534005038, 1.115537848605578, 1.103355704697986, 1.285714285714285, 1.14, null], "bo": [0.001283697047496791, 0, 0, 0.001328021248339973, 0, 0.0009000900090009, null]}, "동대문제기점": {"piph": [15.75413223140496, 17.41860465116279, 15.50321199143469, 15.46623794212219, 18.11083123425692, 15.14694800301432, null], "wait": [1.027253668763103, 1.086206896551724, 1.094988780852655, 1.042316258351893, 1.042696629213483, 1.093579978237214, null], "pick": [1.895178197064989, 1.672413793103449, 1.965594614809274, 1.968819599109132, 1.626966292134832, 2.089227421109902, null], "pack": [1.136268343815513, 0.9525862068965517, 1.1264023934181, 1.144766146993319, 0.898876404494382, 1.145810663764962, null], "bo": [0.0006557377049180328, 0, 0.0006906077348066298, 0, 0, 0.0004975124378109452, null]}, "원주점": {"piph": [16.27604166666667, 15.66623544631307, 15.31543624161074, 16.28368794326241, 16.15062761506276, 14.7363184079602, null], "wait": [0.731355252606255, 0.7301324503311258, 0.7947368421052632, 0.708041958041958, 0.7428571428571428, 0.736271186440678, null], "pick": [1.934242181234964, 2.041390728476821, 2.073684210526316, 1.93006993006993, 1.937662337662338, 2.212881355932204, null], "pack": [1.02485966319166, 1.067880794701987, 1.057894736842105, 1.05944055944056, 1.044155844155844, 1.143050847457627, null], "bo": [0, 0.0008257638315441783, 0.0008764241893076249, 0.0008710801393728223, 0, 0, null]}, "청주흥덕점": {"piph": [12.79556650246305, 12.70807453416149, 13.47883597883598, 12.40506329113924, 13.59116022099447, 12.05936920222635, null], "wait": [0.9845559845559846, 0.9244357212953876, 0.9517241379310346, 0.9846153846153847, 0.9376915219611849, 0.9775019394879751, null], "pick": [2.310810810810811, 2.402355250245339, 2.133990147783251, 2.412307692307692, 2.212461695607763, 2.513576415826222, null], "pack": [1.401544401544402, 1.41315014720314, 1.377339901477832, 1.458461538461538, 1.287027579162411, 1.526764934057409, null], "bo": [0.0009624639076034649, 0.0009775171065493646, 0, 0.001020408163265306, 0.001016260162601626, 0, null]}, "대전중구점": {"piph": [15.93558282208589, 15.43988269794721, 15.8528951486698, 16.08318890814558, 15.97039473684211, 15.59139784946236, null], "wait": [0.9181905678537053, 0.8571428571428571, 0.924901185770751, 0.9827586206896551, 0.9649484536082474, 0.9876923076923076, null], "pick": [1.772858517805582, 1.874285714285714, 1.737154150197628, 1.713362068965517, 1.71340206185567, 1.887692307692308, null], "pack": [1.079884504331088, 1.16, 1.126482213438735, 1.02801724137931, 1.088659793814433, 0.9876923076923076, null], "bo": [0, 0, 0, 0, 0, 0, null]}, "중랑면목점": {"piph": [13.13199105145414, 13.41013824884793, 14.46614583333333, 13.13333333333333, 13.09442548350398, 12.92388847023361, null], "wait": [1.036082474226804, 0.9653979238754323, 0.8184281842818428, 0.865874363327674, 0.9165935030728711, 0.9393761035903473, null], "pick": [2.422680412371134, 2.346020761245675, 2.151761517615176, 2.429541595925297, 2.470588235294118, 2.528546203649206, null], "pack": [1.149484536082474, 1.193771626297578, 1.192411924119241, 1.283531409168081, 1.243195785776997, 1.211300765155974, null], "bo": [0.001703577512776831, 0, 0, 0.0008460236886632825, 0, 0.0005830903790087463, null]}, "인천검단점": {"piph": [15.67656765676568, 15.5, 14.86301369863014, 14.87940630797774, 14.16967509025271, 13.44124700239808, null], "wait": [0.8181818181818182, 0.7889273356401384, 0.8521939953810623, 0.8785982478097623, 1.044814340588988, 0.947085201793722, null], "pick": [1.845665961945032, 1.923875432525952, 1.905311778290993, 1.922403003754693, 1.966709346991037, 2.152466367713004, null], "pack": [1.179704016913319, 1.155709342560554, 1.295612009237875, 1.239048811013767, 1.244558258642766, 1.382959641255605, null], "bo": [0, 0.001152073732718894, 0, 0, 0, 0.0008920606601248885, null]}, "시흥점": {"piph": [15.49689440993789, 15.82689335394127, 16.44160583941606, 16.40074211502783, 15.22569444444444, 15.12010113780025, null], "wait": [0.8244734202607824, 0.8864970645792564, 0.860956618464961, 0.8221970554926388, 0.96, 0.7966386554621848, null], "pick": [1.823470411233701, 1.755381604696673, 1.648498331479421, 1.70554926387316, 1.824, 1.936134453781513, null], "pack": [1.227683049147443, 1.150684931506849, 1.147942157953281, 1.134767836919593, 1.165714285714286, 1.250420168067227, null], "bo": [0.001002004008016032, 0, 0, 0, 0, 0, null]}, "부산동래점": {"piph": [13.98854961832061, 12.58603736479843, 13.02839116719243, 14.11363636363636, 13.23959505061867, 13.44040574809806, null], "wait": [0.8459958932238193, 1.093896713615023, 1.081649151172191, 0.9506871463217461, 0.9667519181585678, 0.932406822488945, null], "pick": [2.328542094455852, 2.366197183098592, 2.265157639450282, 2.119644300727566, 2.286445012787723, 2.372710044219836, null], "pack": [1.13347022587269, 1.314553990610329, 1.265966046887631, 1.202910266774454, 1.289002557544757, 1.17877447883765, null], "bo": [0.001364256480218281, 0.0015625, 0, 0, 0, 0.002515723270440251, null]}, "강서가양점": {"piph": [15.55811277330265, 15.33648170011806, 14.47779111644658, 14.50536352800953, 14.6517119244392, 14.3968253968254, null], "wait": [0.8385650224215246, 0.8251748251748252, 0.843594009983361, 0.9601990049751242, 0.8543689320388349, 0.8710217755443886, null], "pick": [2.026905829596413, 2.065268065268065, 2.166389351081531, 2.139303482587064, 2.111650485436893, 2.23785594639866, null], "pack": [1.026905829596413, 1.062937062937063, 1.148086522462562, 1.069651741293532, 1.135922330097088, 1.112227805695142, null], "bo": [0, 0, 0.0008291873963515755, 0, 0, 0, null]}, "동작상도점": {"piph": [16.25194401244168, 16.3275039745628, 16.11382113821138, 16.92439862542955, 15.31001589825119, 15.25241675617615, null], "wait": [0.9573170731707317, 0.9525773195876288, 0.9662676822633297, 0.8906249999999999, 1.018994413407821, 0.935361216730038, null], "pick": [1.914634146341463, 1.917525773195876, 1.997823721436344, 1.988839285714286, 2.071508379888268, 2.162737642585551, null], "pack": [1.054878048780488, 1.02680412371134, 1.044613710554951, 1.017857142857143, 1.126256983240223, 1.149809885931559, null], "bo": [0, 0, 0, 0, 0, 0, null]}, "군포점": {"piph": [15.06880733944954, 15.65104166666667, 16.27345844504022, 15.18324607329843, 16.25641025641026, 15, null], "wait": [0.9618320610687023, 0.8127090301003345, 0.9568106312292359, 0.9566724436741768, 0.8680445151033388, 1.024390243902439, null], "pick": [1.841221374045801, 1.725752508361204, 1.6843853820598, 1.840554592720971, 1.736089030206677, 1.88780487804878, null], "pack": [1.2, 1.304347826086957, 1.066445182724252, 1.195840554592721, 1.116057233704293, 1.119512195121951, null], "bo": [0, 0, 0, 0, 0, 0.001212121212121212, null]}, "대구중구점": {"piph": [15.23809523809524, 14.05044510385757, 14.47325769854133, 13.31838565022421, 14.04838709677419, 12.80405405405405, null], "wait": [0.9047178538390379, 1.005302226935313, 1.02027027027027, 1.106861642294713, 1.068208092485549, 1.050397877984085, null], "pick": [1.93154486586494, 2.080593849416755, 2.027027027027027, 2.132733408323959, 2.053179190751445, 2.350132625994695, null], "pack": [1.126734505087882, 1.208907741251326, 1.121621621621621, 1.275590551181103, 1.186127167630058, 1.310344827586207, null], "bo": [0, 0, 0.001119820828667413, 0.001122334455667789, 0, 0.0008795074758135445, null]}}, "kpi": {"piph": {"val": 14.53597239549966, "achieved": false}, "wait": {"val": 0.9487885506000046, "achieved": true}, "pick": {"val": 2.070122841205847, "achieved": false}, "pack": {"val": 1.189642521834492, "achieved": true}, "bo": {"val": 0.0003711493257453916, "achieved": true}}, "ppc7dAvg": {"piph": {"용인기흥점": 13.920078412781413, "서초교대점": 14.36612674161023, "서초반포점": 16.488194826717287, "평택점": 14.010138057112366, "송파문정점": 14.51565482444641, "동대문제기점": 16.233327675565977, "원주점": 15.73805788681264, "청주흥덕점": 12.83967828830343, "대전중구점": 15.812223693858826, "중랑면목점": 13.35998707011772, "인천검단점": 14.754984959337392, "시흥점": 15.751988550094623, "부산동래점": 13.399435885444094, "강서가양점": 14.821047739856906, "동작상도점": 16.03001673417879, "군포점": 15.572160630144184, "대구중구점": 13.98877080692443}, "wait": {"용인기흥점": 1.1323480603071145, "서초교대점": 1.0242105036562077, "서초반포점": 0.8033912404105372, "평택점": 0.9931593338134475, "송파문정점": 0.9999557220625753, "동대문제기점": 1.0645070353283455, "원주점": 0.7405658053970705, "청주흥덕점": 0.9600874483078252, "대전중구점": 0.9392723321262538, "중랑면목점": 0.9236254253958287, "인천검단점": 0.8883001565659151, "시흥점": 0.8584604690433039, "부산동래점": 0.9785646074967153, "강서가양점": 0.8654872616896764, "동작상도점": 0.9535237841932581, "군포점": 0.930076487513038, "대구중구점": 1.025959660634828}, "pick": {"용인기흥점": 2.0616816501568724, "서초교대점": 2.1108872982834694, "서초반포점": 1.7417066001031187, "평택점": 2.0116543506142297, "송파문정점": 2.0100726910635296, "동대문제기점": 1.8696999862219297, "원주점": 2.0216551239837623, "청주흥덕점": 2.330917002096846, "대전중구점": 1.7831258034670698, "중랑면목점": 2.391523121016768, "인천검단점": 1.952738648536785, "시흥점": 1.7821723441774113, "부산동래점": 2.289782712456642, "강서가양점": 2.124562193394771, "동작상도점": 2.0088448248602977, "군포점": 1.7859679609072054, "대구중구점": 2.095868494563137}, "pack": {"용인기흥점": 1.1396949229184095, "서초교대점": 1.3653001750690883, "서초반포점": 1.1750622550614733, "평택점": 1.3077403852341647, "송파문정점": 1.1735569008801587, "동대문제기점": 1.0674516932304714, "원주점": 1.066213740964964, "청주흥덕점": 1.4107147503177888, "대전중구점": 1.0784560101093124, "중랑면목점": 1.2122826744333908, "인천검단점": 1.2495986799373142, "시흥점": 1.17953540488478, "부산동래점": 1.230779594421252, "강서가양점": 1.0926218820136333, "동작상도점": 1.0700366491792839, "군포점": 1.1670338320383624, "대구중구점": 1.2048877357263663}, "bo": {"용인기흥점": 0.0, "서초교대점": 0.00016869095816464234, "서초반포점": 0.0, "평택점": 0.00040558394176302536, "송파문정점": 0.0005853013841396106, "동대문제기점": 0.00030730964625593464, "원주점": 0.0004288780267041042, "청주흥덕점": 0.0006627748900032935, "대전중구점": 0.0, "중랑면목점": 0.0005221152634081434, "인천검단점": 0.0003406890654739638, "시흥점": 0.000167000668002672, "부산동래점": 0.0009070799584430887, "강서가양점": 0.00013819789939192924, "동작상도점": 0.0, "군포점": 0.000202020202020202, "대구중구점": 0.0005202771266914578}}, "ppcW0": {"piph": {"용인기흥점": 14.06483790523691, "서초교대점": 14.39346972514982, "서초반포점": 16.32397191574724, "평택점": 13.91644500078235, "송파문정점": 14.49022839651519, "동대문제기점": 15.93432586614721, "원주점": 15.36303349770447, "청주흥덕점": 12.91917167668671, "대전중구점": 15.72129137719657, "중랑면목점": 13.21530147895336, "인천검단점": 14.49162011173184, "시흥점": 15.51515151515152, "부산동래점": 13.33792343706968, "강서가양점": 14.67240624543996, "동작상도점": 15.71230158730159, "군포점": 15.5009633911368, "대구중구점": 13.74416796267496}, "wait": {"용인기흥점": 1.112533333333333, "서초교대점": 1.017637795275591, "서초반포점": 0.7963602133668026, "평택점": 0.9984173637802398, "송파문정점": 0.9985214391325777, "동대문제기점": 1.05377154157642, "원주점": 0.747918747918748, "청주흥덕점": 0.9558556219163854, "대전중구점": 0.9522197630516859, "중랑면목점": 0.9354279523293608, "인천검단점": 0.8894052044609665, "시흥점": 0.8565430370888735, "부산동래점": 0.9709079614866963, "강서가양점": 0.8809882494727328, "동작상도점": 0.9662951889100299, "군포점": 0.9239424880183371, "대구중구점": 1.036510868021026}, "pick": {"용인기흥점": 2.039466666666667, "서초교대점": 2.131653543307086, "서초반포점": 1.764041418261688, "평택점": 2.023287361519331, "송파문정점": 2.024642681123706, "동대문제기점": 1.920519822958847, "원주점": 2.078588078588079, "청주흥덕점": 2.302778499091145, "대전중구점": 1.797422210649655, "중랑면목점": 2.426002166847238, "인천검단점": 1.995353159851301, "시흥점": 1.829811056682995, "부산동래점": 2.307071125375298, "강서가양점": 2.160891834890027, "동작상도점": 2.047567273715684, "군포점": 1.789122733902896, "대구중구점": null}, "pack": {"용인기흥점": 1.130666666666666, "서초교대점": 1.366299212598425, "서초반포점": 1.186068402886727, "평택점": 1.314492425955234, "송파문정점": 1.165105963528832, "동대문제기점": 1.085977964026745, "원주점": 1.090909090909091, "청주흥덕점": 1.403791223058946, "대전중구점": 1.073297747689103, "중랑면목점": 1.20715059588299, "인천검단점": 1.271375464684015, "시흥점": 1.190762771168649, "부산동래점": 1.233668081581944, "강서가양점": 1.085266646580295, "동작상도점": 1.096765425387334, "군포점": 1.182746405501146, "대구중구점": null}, "bo": {"용인기흥점": 0.0001773049645390071, "서초교대점": 0.0001435750179468773, "서초반포점": 0.0003072196620583717, "평택점": 0.0003373060490218124, "송파문정점": 0.0006499837504062399, "동대문제기점": 0.0002619629758994062, "원주점": 0.0003320420586607637, "청주흥덕점": 0.000517063081695967, "대전중구점": 0.0002599428125812321, "중랑면목점": 0.0004304315075863553, "인천검단점": 0.0006168080185042405, "시흥점": 0.0004185267857142857, "부산동래점": 0.0008259343382201115, "강서가양점": 9.945300845350572e-05, "동작상도점": 0.0001262785705265816, "군포점": 0.0002071680132587529, "대구중구점": null}}, "team7dAvg": {"piph": {"1팀": 14.39208689535757, "2팀": 14.739853367475925, "3팀": 14.414827707426126, "4팀": 15.017973028925551}, "wait": {"1팀": 1.006533048463062, "2팀": 0.92881513514569, "3팀": 0.9163618981347749, "4팀": 0.9370569723990134}, "pick": {"1팀": 2.0127029662951084, "2팀": 2.073718230522118, "3팀": 2.0404254619529736, "4팀": 2.0319857640710866}, "pack": {"1팀": 1.2476411047400073, "2팀": 1.1591778306704257, "3팀": 1.2202205106610575, "4팀": 1.1259565969090994}, "bo": {"1팀": 0.00026860957454570626, "2팀": 0.0003847152801378509, "3팀": 0.0005173774075434074, "4팀": 0.0001996912755469511}}}</script>
 <script>
 const DATA = JSON.parse(document.getElementById('dataset').textContent);
+
 function fmtVal(v, fmt) {
   if (v == null || isNaN(v)) return '-';
   if (fmt === 'pct') return (v*100).toFixed(3) + '%';
   return Number(v).toFixed(2);
 }
+function fmtGap(v, target, dir) {
+  if (v == null) return {text:'-', good:false};
+  const raw = (v - target) / target;
+  const sign = raw >= 0 ? '+' : '';
+  const good = dir === 'high' ? raw >= 0 : raw <= 0;
+  return { text: sign + (raw*100).toFixed(1) + '%', good };
+}
+function isOk(v, target, dir) {
+  if (v == null) return null;
+  return dir === 'high' ? v >= target : v <= target;
+}
+
 Chart.defaults.font.family = "Pretendard, 맑은 고딕, Malgun Gothic, sans-serif";
-Chart.defaults.font.size = 12;
+Chart.defaults.font.size = 11;
 Chart.defaults.color = '#374151';
 
-function makeChart(canvas, metric, datasets) {
+document.getElementById('rangeInfo').textContent =
+  '일별 ' + DATA.dailyDates[0] + ' ~ ' + DATA.dailyDates[DATA.dailyDates.length-1] +
+  ' · 주별 ' + DATA.weeklyLabels[0] + ' ~ ' + DATA.weeklyLabels[DATA.weeklyLabels.length-1];
+
+// ===== 세줄 요약 =====
+(function renderInsights() {
+  const lines = [];
+  const achieved = DATA.metrics.filter(m => DATA.kpi[m.key].achieved === true);
+  const missed   = DATA.metrics.filter(m => DATA.kpi[m.key].achieved === false);
+  const achievedNames = achieved.map(m => m.name).join(', ') || '없음';
+  const missedNames   = missed.map(m => m.name).join(', ') || '없음';
+  lines.push('<strong>W-0 (' + DATA.weeklyLabels[DATA.weeklyLabels.length-1] + ') 5개 지표 중 <b class="good">' + achieved.length + '개 달성</b> · <b class="bad">' + missed.length + '개 미달</b></strong> — 달성 [' + achievedNames + '] / 미달 [' + missedNames + ']');
+
+  let worst = null, worstGap = -1;
+  DATA.metrics.forEach(m => {
+    if (DATA.kpi[m.key].achieved !== false) return;
+    const v = DATA.kpi[m.key].val;
+    if (v == null) return;
+    const gap = m.dir === 'high' ? (m.target - v) / m.target : (v - m.target) / m.target;
+    if (gap > worstGap) { worstGap = gap; worst = m; }
+  });
+  if (worst) {
+    const v = DATA.kpi[worst.key].val;
+    const valDisp = worst.fmt === 'pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2);
+    const tgtDisp = worst.fmt === 'pct' ? (worst.target*100).toFixed(3)+'%' : worst.target;
+    lines.push('<strong>최우선 개선:</strong> ' + worst.name + ' <b class="bad">' + valDisp + '</b> (목표 ' + tgtDisp + ' 대비 <b class="bad">' + (worstGap*100).toFixed(1) + '% 미달</b>) — 5차 PPC 전체에서 격차 가장 큼');
+  } else {
+    lines.push('<strong>최우선 개선:</strong> 전 지표 목표 달성 — 현 수준 유지 권장 🎉');
+  }
+
+  const scores = {};
+  DATA.teams.forEach(t => scores[t] = 0);
+  DATA.metrics.forEach(m => {
+    DATA.teams.forEach(t => {
+      const v = DATA.team7dAvg[m.key][t];
+      if (v == null) return;
+      const ok = m.dir === 'high' ? v >= m.target : v <= m.target;
+      if (ok) scores[t]++;
+    });
+  });
+  const best  = DATA.teams.reduce((a,b) => scores[b] > scores[a] ? b : a);
+  const worstT = DATA.teams.reduce((a,b) => scores[b] < scores[a] ? b : a);
+  const scoreStr = DATA.teams.map(t => t + ' ' + scores[t] + '/5').join(' · ');
+  let cmp = '';
+  if (scores[best] !== scores[worstT]) {
+    cmp = ' — 최우수 <b class="good">' + best + ' (' + scores[best] + '/5)</b> · 최저 <b class="bad">' + worstT + ' (' + scores[worstT] + '/5)</b>';
+  } else {
+    cmp = ' — 4팀 모두 동일 (' + scores[best] + '/5)';
+  }
+  lines.push('<strong>팀 7일 달성 현황:</strong> ' + scoreStr + cmp);
+
+  const ul = document.getElementById('insightList');
+  lines.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = t;
+    ul.appendChild(li);
+  });
+})();
+
+// ===== KPI 카드 =====
+const kpiGrid = document.getElementById('kpiGrid');
+DATA.metrics.forEach(m => {
+  const k = DATA.kpi[m.key];
+  const gap = fmtGap(k.val, m.target, m.dir);
+  const ok = k.achieved;
+  const card = document.createElement('div');
+  card.className = 'kpi-card ' + (ok === true ? 'good' : ok === false ? 'bad' : '');
+  card.innerHTML =
+    '<div class="kpi-label">' + m.name + '</div>' +
+    '<div class="kpi-value">' + fmtVal(k.val, m.fmt) + '</div>' +
+    '<div class="kpi-target">목표 ' + fmtVal(m.target, m.fmt) + ' ' + m.unit + ' · ' + (m.dir==='high' ? '↑ 높을수록 좋음' : '↓ 낮을수록 좋음') + '</div>' +
+    '<div class="kpi-gap-row">' +
+      '<span class="kpi-gap ' + (gap.good?'good':'bad') + '">GAP ' + gap.text + '</span>' +
+      '<span class="kpi-status ' + (ok?'good':'bad') + '">' + (ok?'🟢 달성':'🔴 미달') + '</span>' +
+    '</div>';
+  kpiGrid.appendChild(card);
+});
+
+// ===== 팀 가로막대 5개 =====
+function buildTeamBar(canvas, metric) {
+  const labels = DATA.teams;
+  const values = labels.map(t => DATA.team7dAvg[metric.key][t]);
+  const bgs = values.map(v => {
+    if (v == null) return '#CCC';
+    return isOk(v, metric.target, metric.dir) ? '#4CAF50' : '#E53935';
+  });
+  const valid = values.filter(v => v != null);
+  const dataMax = valid.length ? Math.max.apply(null, valid) : 0;
+  const dataMin = valid.length ? Math.min.apply(null, valid) : 0;
+  const xMax = Math.max(dataMax, metric.target) * 1.18;
+  const xMin = Math.max(0, Math.min(dataMin, metric.target) * 0.85);
   new Chart(canvas, {
-    type: 'line',
-    data: { labels: DATA.weekLabels, datasets },
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: bgs, borderRadius: 4, barThickness: 24 }] },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      layout: { padding: { right: 56, left: 4, top: 8 } },
       plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 8 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtVal(ctx.parsed.y, metric.fmt)} ${metric.unit}` } }
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) {
+          const v = ctx.parsed.x;
+          const g = (v - metric.target) / metric.target;
+          const sign = g >= 0 ? '+' : '';
+          return [fmtVal(v, metric.fmt) + ' ' + metric.unit, '목표 대비 ' + sign + (g*100).toFixed(1) + '%'];
+        }}}
       },
       scales: {
-        x: { grid: { color: '#EEF1F5' } },
-        y: { ticks: { callback: v => metric.fmt === 'pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2) }, grid: { color: '#EEF1F5' } }
+        x: { min: xMin, max: xMax,
+              ticks: { callback: function(v) { return metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2); } },
+              grid: { color: '#EEF1F5' } },
+        y: { grid: { display: false } }
+      }
+    },
+    plugins: [
+      { id: 'tl', afterDatasetsDraw: function(c) {
+        const xs = c.scales.x;
+        const xp = xs.getPixelForValue(metric.target);
+        if (xp < c.chartArea.left || xp > c.chartArea.right) return;
+        const ctx = c.ctx;
+        ctx.save();
+        ctx.strokeStyle = '#C00000'; ctx.setLineDash([6,4]); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(xp, c.chartArea.top); ctx.lineTo(xp, c.chartArea.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#C00000'; ctx.font = 'bold 10px sans-serif';
+        const lbl = '🎯' + (metric.fmt==='pct' ? (metric.target*100).toFixed(3)+'%' : Number(metric.target).toFixed(2));
+        ctx.fillText(lbl, xp + 3, c.chartArea.top + 10);
+        ctx.restore();
+      }},
+      { id: 'vl', afterDatasetsDraw: function(c) {
+        const ctx = c.ctx; const ds = c.getDatasetMeta(0).data;
+        ctx.save(); ctx.fillStyle = '#333'; ctx.font = 'bold 11px sans-serif'; ctx.textBaseline = 'middle';
+        ds.forEach(function(bar, i) {
+          const v = c.data.datasets[0].data[i];
+          if (v == null) return;
+          const t = metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : Number(v).toFixed(2);
+          ctx.fillText(t, bar.x + 6, bar.y);
+        });
+        ctx.restore();
+      }}
+    ]
+  });
+}
+const teamGridEl = document.getElementById('teamGrid');
+DATA.metrics.forEach(function(m) {
+  const div = document.createElement('div');
+  div.className = 'chart-box';
+  div.innerHTML = '<div class="ttl">' + m.name + '</div>' +
+                  '<div class="ttl-sub">목표 ' + fmtVal(m.target, m.fmt) + ' ' + m.unit + '</div>' +
+                  '<div class="chart-wrap team"><canvas></canvas></div>';
+  teamGridEl.appendChild(div);
+  buildTeamBar(div.querySelector('canvas'), m);
+});
+
+// ===== W-0 PPC 가로막대 =====
+function buildW0Rank(canvas, metric) {
+  const _old = Chart.getChart(canvas);
+  if (_old) _old.destroy();
+  const _filter = (window.teamFilter && window.teamFilter[metric.key]) || 'all';
+  const _ppcs = _filter === 'all' ? DATA.ppcs : DATA.ppcs.filter(function(p) { return p.team === _filter; });
+  let arr = _ppcs.map(function(p) { return { name: p.name, team: p.team, group: p.group, val: DATA.ppcW0[metric.key][p.name] }; });
+  const _teamOrder = {'1팀':1, '2팀':2, '3팀':3, '4팀':4};
+  arr.sort(function(a,b) {
+    const td = (_teamOrder[a.team]||99) - (_teamOrder[b.team]||99);
+    if (td !== 0) return td;
+    if (a.val == null) return 1;
+    if (b.val == null) return -1;
+    return metric.dir === 'high' ? b.val - a.val : a.val - b.val;
+  });
+  const labels = arr.map(function(x) { return x.name + '  [' + x.team + ']'; });
+  const values = arr.map(function(x) { return x.val; });
+  const bgs = arr.map(function(x) {
+    if (x.val == null) return '#CCC';
+    return isOk(x.val, metric.target, metric.dir) ? '#4CAF50' : '#E53935';
+  });
+  new Chart(canvas, {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: bgs, borderRadius: 4, barThickness: 18 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      layout: { padding: { right: 80, left: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) {
+          const ppc = arr[ctx.dataIndex];
+          const g = (ppc.val - metric.target) / metric.target;
+          const sign = g >= 0 ? '+' : '';
+          return ['값: ' + fmtVal(ppc.val, metric.fmt) + ' ' + metric.unit,
+                  '목표 대비: ' + sign + (g*100).toFixed(1) + '%',
+                  ppc.group + ' · ' + ppc.team];
+        }}}
+      },
+      scales: {
+        x: { ticks: { callback: function(v) { return metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2); } }, grid: { color: '#EEF1F5' } },
+        y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    },
+    plugins: [
+      { id: 'tl2', afterDatasetsDraw: function(c) {
+        const xs = c.scales.x;
+        if (metric.target < xs.min || metric.target > xs.max) return;
+        const xp = xs.getPixelForValue(metric.target);
+        const ctx = c.ctx;
+        ctx.save();
+        ctx.strokeStyle = '#C00000'; ctx.setLineDash([7,5]); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(xp, c.chartArea.top); ctx.lineTo(xp, c.chartArea.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#C00000'; ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('🎯 ' + (metric.fmt==='pct' ? (metric.target*100).toFixed(3)+'%' : metric.target), xp + 4, c.chartArea.top + 12);
+        ctx.restore();
+      }},
+      { id: 'vl2', afterDatasetsDraw: function(c) {
+        const ctx = c.ctx; const ds = c.getDatasetMeta(0).data;
+        ctx.save(); ctx.fillStyle = '#333'; ctx.font = 'bold 11px sans-serif'; ctx.textBaseline = 'middle';
+        ds.forEach(function(bar, i) {
+          const v = c.data.datasets[0].data[i];
+          if (v == null) return;
+          const t = metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : Number(v).toFixed(2);
+          ctx.fillText(t, bar.x + 6, bar.y);
+        });
+        ctx.restore();
+      }}
+    ]
+  });
+}
+
+// ===== PPC 카드 (7일 세로막대) =====
+function buildPPCCard(metric, ppc, yMin, yMax) {
+  const card = document.createElement('div');
+  card.className = 'ppc-card team-' + ppc.team;
+  const vals = DATA.daily[ppc.name][metric.key];
+  const ppcAvg = DATA.ppc7dAvg[metric.key][ppc.name];
+  const ok = isOk(ppcAvg, metric.target, metric.dir);
+  const gap = fmtGap(ppcAvg, metric.target, metric.dir);
+  card.innerHTML =
+    '<div class="ppc-card-head">' +
+      '<span class="ppc-name">' + ppc.name + '</span>' +
+      '<span class="team-badge t' + ppc.team + '">' + ppc.team + '</span>' +
+    '</div>' +
+    '<div class="ppc-card-stats">' +
+      '<span>7일 평균</span>' +
+      '<span class="avg ' + (ok?'good':'bad') + '">' + fmtVal(ppcAvg, metric.fmt) +
+        ' <span style="font-size:10px;font-weight:600">(' + gap.text + ')</span></span>' +
+    '</div>' +
+    '<div class="ppc-card-chart"><canvas></canvas></div>';
+  const canvas = card.querySelector('canvas');
+  const bgs = vals.map(function(v) {
+    if (v == null) return '#CCC';
+    return isOk(v, metric.target, metric.dir) ? '#4CAF50' : '#E53935';
+  });
+  function lblFmt(v) {
+    if (v == null) return '';
+    return metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : Number(v).toFixed(2);
+  }
+  new Chart(canvas, {
+    type: 'bar',
+    data: { labels: DATA.dailyDates, datasets: [{ data: vals, backgroundColor: bgs, borderRadius: 2, barThickness: 'flex', maxBarThickness: 22 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 14 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx) { return fmtVal(ctx.parsed.y, metric.fmt) + ' ' + metric.unit; }}}
+      },
+      scales: {
+        x: { ticks: { font: { size: 9 }, color: '#888', maxRotation: 0 }, grid: { display: false } },
+        y: { min: yMin, max: yMax,
+              ticks: { font: { size: 9 }, color: '#888',
+                        callback: function(v) { return metric.fmt==='pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2); },
+                        maxTicksLimit: 4 },
+              grid: { color: '#F0F2F5' } }
       },
       animation: { duration: 300 }
-    }
+    },
+    plugins: [
+      { id: 'targetLine', afterDatasetsDraw: function(chart) {
+        const ys = chart.scales.y;
+        if (metric.target < ys.min || metric.target > ys.max) return;
+        const yp = ys.getPixelForValue(metric.target);
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.strokeStyle = '#C00000'; ctx.setLineDash([4,3]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(chart.chartArea.left, yp); ctx.lineTo(chart.chartArea.right, yp); ctx.stroke();
+        ctx.restore();
+      }},
+      { id: 'dataLabel', afterDatasetsDraw: function(chart) {
+        const ctx = chart.ctx; const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.font = 'bold 9px sans-serif'; ctx.fillStyle = '#333';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        meta.data.forEach(function(bar, i) {
+          const v = chart.data.datasets[0].data[i];
+          if (v == null) return;
+          ctx.fillText(lblFmt(v), bar.x, bar.y - 2);
+        });
+        ctx.restore();
+      }}
+    ]
   });
-}
-function ds(label, data, color, opts) {
-  return Object.assign({
-    label, data, borderColor: color, backgroundColor: color+'20',
-    borderWidth: 2.5, tension: 0.25, pointRadius: 3, pointHoverRadius: 6,
-  }, opts||{});
-}
-function targetDs(target) {
-  return { label:'🎯목표', data: DATA.weekLabels.map(()=>target), borderColor:'#C00000',
-    borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0 };
-}
-
-// ===== 전체 탭 =====
-const overallGrid = document.getElementById('overallGrid');
-DATA.metrics.forEach(m => {
-  const box = document.createElement('div');
-  box.className = 'chart-box';
-  box.innerHTML = `<div class="ttl">${m.name}</div>
-    <div class="sub">목표 ${fmtVal(m.target, m.fmt)} ${m.unit} · ${m.dir==='high'?'↑ 높을수록 좋음':'↓ 낮을수록 좋음'}</div>
-    <div class="chart-wrap"><canvas></canvas></div>`;
-  overallGrid.appendChild(box);
-  const s = DATA.series;
-  makeChart(box.querySelector('canvas'), m, [
-    ds('6차 PPC', s['6차 PPC'][m.key], '#4472C4', {borderWidth:3.5, pointRadius:4}),
-    ds('전체', s['전체'][m.key], '#ED7D31', {borderWidth:3, pointRadius:4}),
-    targetDs(m.target)
-  ]);
-});
-
-// ===== 그룹/팀 탭 렌더러 (필터 대응) =====
-const state = { group: 'all', team: 'all', ppcMetric: DATA.metrics[0].key, ppcTeam: 'all' };
-
-const GROUP_COLORS = { '그룹1':'#5B9BD5', '그룹2':'#F1975A' };
-const TEAM_COLORS = { '1팀':'#4472C4', '2팀':'#ED7D31', '3팀':'#70AD47', '4팀':'#7030A0' };
-
-function buildGroupCharts() {
-  const grid = document.getElementById('groupGrid');
-  grid.querySelectorAll('canvas').forEach(c => { const ch = Chart.getChart(c); if (ch) ch.destroy(); });
-  grid.innerHTML = '';
-  const sel = state.group;
-  const legendEl = document.getElementById('groupLegend');
-  legendEl.innerHTML = '';
-  const legends = [
-    ['6차 PPC', '#1F3864'],
-    sel === 'all' || sel === '그룹1' ? ['그룹1', GROUP_COLORS['그룹1']] : null,
-    sel === 'all' || sel === '그룹2' ? ['그룹2', GROUP_COLORS['그룹2']] : null,
-    sel === 'all' ? ['전체(회사)', '#666'] : null,
-  ].filter(Boolean);
-  legends.forEach(([lbl, col]) => {
-    legendEl.innerHTML += `<span><span class="dot" style="background:${col}"></span>${lbl}</span>`;
-  });
-  legendEl.innerHTML += '<span><span class="dash"></span>🎯 목표</span>';
-
-  DATA.metrics.forEach(m => {
-    const box = document.createElement('div');
-    box.className = 'chart-box';
-    box.innerHTML = `<div class="ttl">${m.name}</div>
-      <div class="sub">목표 ${fmtVal(m.target, m.fmt)} ${m.unit}</div>
-      <div class="chart-wrap"><canvas></canvas></div>`;
-    grid.appendChild(box);
-    const s = DATA.series;
-    const datasets = [ds('6차 PPC', s['6차 PPC'][m.key], '#1F3864', {borderWidth:3.5, pointRadius:4})];
-    if (sel === 'all' || sel === '그룹1') datasets.push(ds('그룹1', s['그룹1'][m.key], GROUP_COLORS['그룹1']));
-    if (sel === 'all' || sel === '그룹2') datasets.push(ds('그룹2', s['그룹2'][m.key], GROUP_COLORS['그룹2']));
-    if (sel === 'all') datasets.push(ds('전체', s['전체'][m.key], '#666', {borderDash:[3,3]}));
-    datasets.push(targetDs(m.target));
-    makeChart(box.querySelector('canvas'), m, datasets);
-  });
+  return card;
 }
 
-function buildTeamCharts() {
-  const grid = document.getElementById('teamGrid');
-  grid.querySelectorAll('canvas').forEach(c => { const ch = Chart.getChart(c); if (ch) ch.destroy(); });
-  grid.innerHTML = '';
-  const sel = state.team;
-  const legendEl = document.getElementById('teamLegend');
-  legendEl.innerHTML = '<span><span class="dot" style="background:#1F3864"></span>6차 PPC</span>';
-  const shownTeams = sel === 'all' ? ['1팀','2팀','3팀','4팀'] : [sel];
-  shownTeams.forEach(t => {
-    legendEl.innerHTML += `<span><span class="dot" style="background:${TEAM_COLORS[t]}"></span>${t}</span>`;
-  });
-  legendEl.innerHTML += '<span><span class="dash"></span>🎯 목표</span>';
-
-  DATA.metrics.forEach(m => {
-    const box = document.createElement('div');
-    box.className = 'chart-box';
-    box.innerHTML = `<div class="ttl">${m.name}</div>
-      <div class="sub">목표 ${fmtVal(m.target, m.fmt)} ${m.unit}</div>
-      <div class="chart-wrap"><canvas></canvas></div>`;
-    grid.appendChild(box);
-    const s = DATA.series;
-    const datasets = [ds('6차 PPC', s['6차 PPC'][m.key], '#1F3864', {borderWidth:3.5, pointRadius:4})];
-    shownTeams.forEach(t => datasets.push(ds(t, s[t][m.key], TEAM_COLORS[t])));
-    datasets.push(targetDs(m.target));
-    makeChart(box.querySelector('canvas'), m, datasets);
-  });
-}
-
-// ===== PPC 탭 =====
-const metricFilter = document.getElementById('metricFilter');
-DATA.metrics.forEach((m, i) => {
-  const btn = document.createElement('button');
-  btn.textContent = m.name;
-  btn.dataset.key = m.key;
-  if (i === 0) btn.classList.add('active');
-  btn.onclick = () => {
-    metricFilter.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.ppcMetric = m.key;
-    renderPpc();
-  };
-  metricFilter.appendChild(btn);
-});
-
-function renderPpc() {
-  const m = DATA.metrics.find(x => x.key === state.ppcMetric);
-  const grid = document.getElementById('ppcGrid');
-  grid.querySelectorAll('canvas').forEach(c => { const ch = Chart.getChart(c); if (ch) ch.destroy(); });
-  grid.innerHTML = '';
-  const sixthData = DATA.series['6차 PPC'][state.ppcMetric];
-  const filterTeam = state.ppcTeam;
-  const ppcs = filterTeam === 'all' ? DATA.ppcs : DATA.ppcs.filter(p => p.team === filterTeam);
-  ppcs.forEach(p => {
-    const s = DATA.series[p.name]; if (!s) return;
-    const card = document.createElement('div');
-    card.className = 'ppc-card t' + p.team;
-    card.innerHTML = `
-      <div><span class="name">${p.name}</span><span class="team t${p.team}">${p.team}</span></div>
-      <div class="chart-wrap mini"><canvas></canvas></div>`;
-    grid.appendChild(card);
-    new Chart(card.querySelector('canvas'), {
-      type:'line',
-      data: {
-        labels: DATA.weekLabels,
-        datasets: [
-          {label:p.name, data:s[state.ppcMetric], borderColor:'#1F3864', backgroundColor:'#1F386420', borderWidth:2.5, tension:0.25, pointRadius:3},
-          {label:'6차 평균', data:sixthData, borderColor:'#999', borderDash:[3,3], borderWidth:1.8, tension:0.25, pointRadius:0},
-          {label:'🎯', data:DATA.weekLabels.map(()=>m.target), borderColor:'#C00000', borderDash:[5,3], borderWidth:1.5, pointRadius:0, tension:0}
-        ]
-      },
-      options: {
-        responsive:true, maintainAspectRatio:false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtVal(ctx.parsed.y, m.fmt)}` } }
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } }, grid: { display: false } },
-          y: { ticks: { font: { size: 10 }, callback: v => m.fmt==='pct' ? (v*100).toFixed(3)+'%' : v.toFixed(2), maxTicksLimit: 5 }, grid: { color: '#F0F2F5' } }
-        }
-      }
-    });
-  });
-}
-
-// ===== 필터 버튼 핸들러 =====
-document.querySelectorAll('.filter-row').forEach(row => {
-  const scope = row.dataset.scope;
-  if (scope === 'ppcMetric') return; // 별도 처리
-  row.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      row.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+const rendered = { summary: true };
+window.teamFilter = {};
+DATA.metrics.forEach(function(m) { window.teamFilter[m.key] = 'all'; });
+document.querySelectorAll('.team-filter').forEach(function(filterEl) {
+  const metricKey = filterEl.dataset.metric;
+  filterEl.querySelectorAll('button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      filterEl.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      state[scope] = btn.dataset.key;
-      if (scope === 'group') buildGroupCharts();
-      else if (scope === 'team') buildTeamCharts();
-      else if (scope === 'ppcTeam') renderPpc();
+      window.teamFilter[metricKey] = btn.dataset.team;
+      const m = DATA.metrics.find(function(x) { return x.key === metricKey; });
+      if (m && rendered[metricKey]) renderDetail(m);
     });
   });
 });
+DATA.metrics.forEach(function(m) { rendered[m.key] = false; });
 
-// 초기 렌더 (전체 탭만)
-const rendered = { overall: true, group: false, team: false, ppc: false };
+function renderDetail(metric) {
+  document.getElementById('tgt-' + metric.key).textContent =
+    (metric.fmt === 'pct' ? (metric.target*100).toFixed(3)+'%' : metric.target + ' ' + metric.unit) +
+    ' · ' + (metric.dir === 'high' ? '↑ 높을수록 좋음' : '↓ 낮을수록 좋음');
+  buildW0Rank(document.getElementById('chartW0-'+metric.key), metric);
 
-// 탭 전환
-document.querySelectorAll('#tabBar button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('#tabBar button').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    document.querySelectorAll('main > section').forEach(s => s.classList.remove('active'));
-    document.getElementById('sec-' + b.dataset.tab).classList.add('active');
-    if (!rendered[b.dataset.tab]) {
-      if (b.dataset.tab === 'group') buildGroupCharts();
-      else if (b.dataset.tab === 'team') buildTeamCharts();
-      else if (b.dataset.tab === 'ppc') renderPpc();
-      rendered[b.dataset.tab] = true;
-    }
+  const allVals = [];
+  DATA.ppcs.forEach(function(p) {
+    DATA.daily[p.name][metric.key].forEach(function(v) {
+      if (typeof v === 'number' && !isNaN(v)) allVals.push(v);
+    });
   });
-});
+  allVals.push(metric.target);
+  const dMax = Math.max.apply(null, allVals);
+  const dMin = Math.min.apply(null, allVals);
+  const span = dMax - dMin;
+  const yMax = dMax + Math.max(span * 0.18, dMax * 0.05);
+  const yMin = Math.max(0, dMin - Math.max(span * 0.05, dMin * 0.05));
+
+  const grid = document.getElementById('cards-'+metric.key);
+  grid.querySelectorAll('canvas').forEach(function(c) { const ch = Chart.getChart(c); if (ch) ch.destroy(); });
+  grid.innerHTML = '';
+  const _filter = (window.teamFilter && window.teamFilter[metric.key]) || 'all';
+  const _ppcs = _filter === 'all' ? DATA.ppcs : DATA.ppcs.filter(function(p) { return p.team === _filter; });
+  _ppcs.forEach(function(p) { grid.appendChild(buildPPCCard(metric, p, yMin, yMax)); });
+}
+
+const tabs = document.querySelectorAll('#tabBar button');
+const sections = document.querySelectorAll('section');
+function activate(id) {
+  tabs.forEach(function(b) { b.classList.toggle('active', b.dataset.tab === id); });
+  sections.forEach(function(s) { s.classList.toggle('active', s.id === 'sec-' + id); });
+  if (rendered[id]) return;
+  const m = DATA.metrics.find(function(x) { return x.key === id; });
+  if (m) renderDetail(m);
+  rendered[id] = true;
+}
+tabs.forEach(function(b) { b.addEventListener('click', function() { activate(b.dataset.tab); }); });
 </script>
 </body>
 </html>
